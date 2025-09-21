@@ -43,7 +43,7 @@
 
 ### 수행 과정
 - 내부 파라미터가 고정되어 있으므로, train.py나 convert.py에 인자를 주어 변경할 수 있다고 판단.
-- webcam으로는 총 150장의 840x620 방 내부 이미지를 촬영함.
+- webcam으로는 총 150장의 1280x720 방 내부 이미지를 촬영함.
 - 사용한 명령어
   ```bash
   # take_picture (150 pictures)
@@ -61,7 +61,7 @@
 
 ### 학습 결과
 ![intel viewsense d435로 학습한 과정](../video_picture/250922_gaussian_viewsense_room_log.png)
-- Dataset : 126 views, 848×480@30 fps, 노출 고정, 실내 조명 일정
+- Dataset : 126 views, 1270x720@30 fps, 노출 고정, 실내 조명 일정
 - Training : 30k it, 59m 02s, 최종 PSNR 32.8 dB, Eval 주기 1000 it
 - Viewing : render.py 126/126 완료, 평균 2.1 it/s
 
