@@ -1,20 +1,21 @@
 ## 1. 방 찍은거 gaussain splatting으로 최적화 해보기
 
 ### 수행 과정
-- 학습 시간은 1시간 걸림.
-- on the fly nvs보다는 조금 더 품질이 좋아 보임. (시각적으로 확인했을 때)
+- gaussian-splatting으로 최적화한 시간은 1시간 소요됨.
+![gaussinan-splatting으로 수행한 방 사진](../video_picture/250922_gaussian_room_iphone.png)
+- on-the-fly-nvs로 같은 사진을 수행했을 때 1분 남짓 소요됨.
+![on-the-fly-nvs로 수행한 방 사진](../video_picture/250922_ontheflynvs_room_iphone.png)
+
 
 ### 수행하며
 
 #### gaussian-splatting과 on-the-fly-nvs의 차이점에 대해
 1. Gaussian Splatting (전통적 방식)
    - 학습 시간: 1시간 (30k 이터레이션)
-   - 렌더링 속도: 60-390 FPS (실시간)
    - 전체 파이프라인: 촬영 → COLMAP → 학습(1시간) → 렌더링
 
 2. On-the-Fly NVS
    - 학습 시간: 11초 - 2분 (실시간 처리)
-   - 렌더링 속도: 30+ FPS (실시간 유지)
    - 전체 파이프라인: 촬영과 동시에 실시간 학습 및 렌더링
 
 3. 속도 차이 원인
