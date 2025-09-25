@@ -44,48 +44,51 @@ Generated files:
 
 ### 2. COLMAP 실행 (conda 환경 활성화 후)
 ```bash
-# 디렉토리 초기화
-rm -rf data/room2_640480/colmap_workspace data/room2_640480/distorted data/room2_640480/sparse data/room2_640480/images
-mkdir -p data/room2_640480/colmap_workspace/sparse
-
-# COLMAP 실행
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python run_colmap_room2.py
 ```
 
 ### 3. COLMAP 출력을 Gaussian Splatting 형식으로 변환
 ```bash
+source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python convert.py -s data/room2_640480 --skip_matching
+```
+
+### 4. 디렉토리 구조 조정 (convert.py 오류 해결)
+```bash
+cp -r data/room2_640480/colmap_workspace data/room2_640480/distorted
+```
+
+### 5. 다시 변환 실행
+```bash
+source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python convert.py -s data/room2_640480 --skip_matching
+```
+
+### 6. 전체 변환 (포인트 클라우드 생성 포함)
+```bash
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python convert.py -s data/room2_640480
 ```
 
-### 4. 학습 실행 (개선된 파라미터)
+### 7. 학습 실행
 ```bash
-source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python train.py -s data/room2_640480 --eval --iterations 50000 --densification_interval 500 --densify_until_iter 20000
+source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python train.py -s data/room2_640480 --eval
 ```
 
-### 5. 렌더링 실행
+### 8. 렌더링 실행
 ```bash
-source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python render.py -m output/[checkpoint_directory] -s data/room2_640480 --iteration 50000
+source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting && python render.py -m output/[checkpoint_directory] -s data/room2_640480
 ```
 
-### 6. 뷰어 실행
+### 9. 뷰어 실행
 ```bash
-SIBR_viewers/install/bin/SIBR_gaussianViewer_app -m output/[checkpoint_directory]
+./SIBR_viewers/install/bin/SIBR_gaussianViewer_app --model-path output/room2_640480
 ```
 
 ## 카메라 파라미터
 
-Intel RealSense D435 640x480 카메라 파라미터 (정확한 캘리브레이션 값):
-- fx = 606.62
-- fy = 606.71
-- cx = 320.78
-- cy = 253.30
-
-**주요 개선사항:**
-- 정확한 카메라 내부 파라미터 사용으로 COLMAP 재구성 품질 향상
-- SIFT 특징점 개수 증가 (8192 → 16384)
-- 매칭 임계값 완화 (0.8 → 0.85)
-- focal length 미세 조정 허용
-- 더 많은 iteration과 densification으로 학습 품질 향상
+Intel RealSense D435 640x480 카메라 파라미터:
+- fx = 382.613
+- fy = 382.613
+- cx = 320.183
+- cy = 237.712
 
 ## 결과 시각화
 
@@ -136,6 +139,7 @@ Training complete. [26/09 02:17:27]
 ### viewer 실행 gif
 ![](../video_picture/250925_viewsense_gaussian_viewer.gif)
 
+![](../video_picture/250926_viewsense_gaussian_viewer.gif)
 
 ### metrics.py로 평가 결과
 - SSIM :    0.7505361
