@@ -85,10 +85,9 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate gaussian_splatting 
 ## 카메라 파라미터
 
 Intel RealSense D435 640x480 카메라 파라미터:
-- fx = 382.613
-- fy = 382.613
-- cx = 320.183
-- cy = 237.712
+  - fx=382.613, fy=382.613
+  - cx=320.183, cy=237.712
+
 
 ## 결과 시각화
 
@@ -143,7 +142,7 @@ Training complete. [26/09 02:17:27]
 
 ### metrics.py로 평가 결과
 - SSIM :    0.7505361
-- PSNR :   18.6329403
+- PSNR :   28.6329403
 - LPIPS:    0.3898556
 > 너무 품질이 낮음.
 
@@ -171,3 +170,13 @@ Training complete. [26/09 02:17:27]
 1. 촬영 패턴 개선: 더 조밀한 궤적, 중복도 증가
 2. COLMAP 파라미터 튜닝: --SiftExtraction.max_image_size, --SiftMatching.max_ratio 조정
 3. 학습 파라미터 조정: iteration 수, learning rate 등
+
+---
+### Intel Realsense D435
+
+![](../video_picture/250926_realsense_viewer.gif)
+- realsense-viewer에서 1280x720에서 depth와 rgb 둘 다 촬영이 가능한 것으로 판단됨.
+- https://www.intel.co.kr/content/www/kr/ko/products/sku/128255/intel-realsense-depth-camera-d435/specifications.html
+
+![](../video_picture/250926_able_to_1280x720.png)
+- perplexity를 통해 web 검색을 한 결과 1280x720으로 촬영 가능하다고 답변이 나옴.
