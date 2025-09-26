@@ -16,10 +16,10 @@ import time
 D435_INTRINSICS = {
     "width": 640,
     "height": 480,
-    "fx": 606.62,
-    "fy": 606.71,
-    "cx": 320.78,
-    "cy": 253.30
+    "fx": 382.613,
+    "fy":382.613,
+    "cx":320.183,
+    "cy":237.712
 }
 
 def setup_realsense():

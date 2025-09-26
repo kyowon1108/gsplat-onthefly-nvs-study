@@ -21,10 +21,11 @@ def main():
 
     # Intel RealSense D435 640x480 camera parameters
     # These are typical values for D435 at 640x480 resolution
-    fx = 606.62  # realsense_capture.py와 동일하게
-    fy = 606.71
-    cx = 320.78
-    cy = 253.30
+    fx=382.613
+    fy=382.613
+    cx=320.183
+    cy=237.712
+
 
     print("=== COLMAP Pipeline for Intel RealSense D435 640x480 ===")
     print(f"Input directory: {input_dir}")
