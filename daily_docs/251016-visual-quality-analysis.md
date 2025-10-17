@@ -181,3 +181,25 @@ Gaussian Splatting은 여러 시점의 관찰을 통해 3D Gaussian의 위치, �
 - 결론: 오버랩은 model merging에 유용하나 individual model의 한계는 해결 못함
 
 ---
+
+## 논문 근거
+
+![“The Potential of Neural Radiance Fields and 3D Gaussian Splatting ...” (ISPRS Annals, 2024)](https://isprs-annals.copernicus.org/articles/X-2-2024/97/2024/isprs-annals-X-2-2024-97-2024.pdf)
+
+### 1. 실험 설정
+- 항공 촬영 이미지로 COLMAP(전통적인 SfM-MVS), NeRF, 3D Gaussian Splatting을 비교
+- “이미지 오버랩이 크고”, “시점 방향이 유사·짧은 baseline”인 데이터셋 사용
+
+### 2. 주요 결과
+
+- **COLMAP(전체 통합 재구성)**이 여전히 가장 뛰어난 정확도와 재현성(geometry, completeness) 보임
+- NeRF와 Splatting도 성능은 나쁘지 않지만, “씬 일부/경계” 또는 “few-view zone”에서 급격히 정확도 및 completeness 저하
+- **“이미지 오버랩이 많아도 전체적인 시점 분포가 넓지 않으면 group별 재구성 품질 한계가 뚜렷하다”**는 점을 강조
+- 오버랩만으로는 전체 coverage 효과를 얻지 못하고, 경계나 미관측 영역에서 결함 및 정확도 저하(=부분 그룹 합 vs 전체, 실험적 차이 존재)
+
+### 3. 결론
+- “High overlap with limited view diversity” (부분 그룹/짧은 baseline/시점 다양성 부족)는 “통합 전체 재구성(full coverage)”에 비해 구조적, 품질적 한계가 명확
+- Gaussian Splatting, NeRF 계열 모두 “골고루 전체를 관측해 통합 학습” 할 때 품질, completeness, 일관성이 가장 높게 나옴
+- 그룹별 reconstruct만으로 품질/coverage 보완은 어렵고, 전역 통합·최적화(즉, 모든 이미지를 한 번에 이용한 full reconstruction)가 바람직함​
+
+---
