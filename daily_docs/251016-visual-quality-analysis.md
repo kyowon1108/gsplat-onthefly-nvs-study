@@ -184,7 +184,8 @@ Gaussian Splatting은 여러 시점의 관찰을 통해 3D Gaussian의 위치, �
 
 ## 논문 근거
 
-![“The Potential of Neural Radiance Fields and 3D Gaussian Splatting ...” (ISPRS Annals, 2024)](https://isprs-annals.copernicus.org/articles/X-2-2024/97/2024/isprs-annals-X-2-2024-97-2024.pdf)
+“The Potential of Neural Radiance Fields and 3D Gaussian Splatting ...” (ISPRS Annals, 2024)
+https://isprs-annals.copernicus.org/articles/X-2-2024/97/2024/isprs-annals-X-2-2024-97-2024.pdf
 
 ### 1. 실험 설정
 - 항공 촬영 이미지로 COLMAP(전통적인 SfM-MVS), NeRF, 3D Gaussian Splatting을 비교
