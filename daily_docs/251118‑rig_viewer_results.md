@@ -163,7 +163,7 @@ I20251117 13:13:08.637928  4976 model.cc:467] Mean reprojection error: 0.919648p
 ```
 - 결과:
 	- Points / Observations / reprojection error가 sparse_no_rig\2 와 동일함.
-	- 기하 정보는 그대로 유지하면서 **rig 구조만 입힌** 상태가 됨됨.
+	- 기하 정보는 그대로 유지하면서 **rig 구조만 입힌** 상태가 됨.
 
 ---
 ## 3. Viewer에서 시각적 검증
