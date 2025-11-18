@@ -174,10 +174,15 @@ I20251117 13:13:08.637928  4976 model.cc:467] Mean reprojection error: 0.919648p
 3. 상위 8개 선택 : 분산이 가장 높은 8개 셀 선택(텍스처가 풍부한 영역)
 4. 지표 계산 : 전체 영역 및 ROI 모두에 대해 PSNR 및 SSIM 계산
 
-### 3.1.2
+### 3.1.2 비교군
 - Postshot-Auto : Postshot에 원본 이미지만 넣고, Postshot 내부의 자동 카메라 추정 + 재구성한 결과 (외부 COLMAP 미사용)
 - No Rig : 2.4에서 수행한 COLMAP 재구성 모델 (rig 없이, rigs : 5)
 - Rig-based : 2.5에서 수행한 rig 기반 모델 (rigs : 1)
+
+### 3.1.3 최적화 시간 (30k iteration)
+- Postshot-Auto : 21분 04초 소요.
+- No Rig : 19분 26초 소요.
+- Rig-based : 23분 27초 소요.
 
 ### 3.2.1 View 1 - 포스터 및 시계 디테일 비교
 ![](https://i.imgur.com/BbO6I2P.jpeg)
