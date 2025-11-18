@@ -168,52 +168,55 @@ I20251117 13:13:08.637928  4976 model.cc:467] Mean reprojection error: 0.919648p
 ---
 ## 3. Viewer에서 시각적 검증
 
-### 3.1 시각적 검증 방식
+### 3.1.1 시각적 검증 방식
 1. ROI 선택 : 이미지를 4×4 격자(16개 셀)로 분할
 2. 분산 분석 : 각 셀에 대해 픽셀 강도 분산 계산
 3. 상위 8개 선택 : 분산이 가장 높은 8개 셀 선택(텍스처가 풍부한 영역)
 4. 지표 계산 : 전체 영역 및 ROI 모두에 대해 PSNR 및 SSIM 계산
 
+### 3.1.2
+- Postshot-Auto : Postshot에 원본 이미지만 넣고, Postshot 내부의 자동 카메라 추정 + 재구성한 결과 (외부 COLMAP 미사용)
+- No Rig : 2.4에서 수행한 COLMAP 재구성 모델 (rig 없이, rigs : 5)
+- Rig-based : 2.5에서 수행한 rig 기반 모델 (rigs : 1)
+
 ### 3.2.1 View 1 - 포스터 및 시계 디테일 비교
-![](https://i.imgur.com/lfFzNeF.jpeg)
+![](https://i.imgur.com/BbO6I2P.jpeg)
 
 | Method   | PSNR (Global) | SSIM (Global) | PSNR (ROI Mean) | SSIM (ROI Mean) |
 | -------- | ------------- | ------------- | --------------- | --------------- |
-| auto     | 28.92 dB      | 0.9133        | 28.05 dB        | 0.8936          |
-| no_rig_2 | 23.24 dB      | 0.8603        | 21.48 dB        | 0.7822          |
-| rig      | 33.07 dB      | 0.9510        | 32.46 dB        | 0.9451          |
+| Postshot-Auto | 28.92 dB      | 0.9133        | 28.05 dB        | 0.8936          |
+| No Rig | 23.24 dB      | 0.8603        | 21.48 dB        | 0.7822          |
+| Rig-based | 33.07 dB      | 0.9510        | 32.46 dB        | 0.9451          |
 ### 3.2.2 View 2 - 기둥 + 목재 텍스처 비교 1
-![](https://i.imgur.com/KsNKpGx.jpeg)
+![](https://i.imgur.com/dkmDeZg.jpeg)
 
 | Method | PSNR (Global) | SSIM (Global) | PSNR (ROI Mean) | SSIM (ROI Mean) |
 |--------|---------------|---------------|-----------------|-----------------|
-| auto | 29.11 dB | 0.9349 | 28.93 dB | 0.9078 |
-| no_rig_2 | 23.11 dB | 0.8909 | 22.61 dB | 0.8224 |
-| rig | 33.38 dB | 0.9610 | 32.91 dB | 0.9427 |
+| Postshot-Auto | 29.11 dB | 0.9349 | 28.93 dB | 0.9078 |
+| No Rig | 23.11 dB | 0.8909 | 22.61 dB | 0.8224 |
+| Rig-based | 33.38 dB | 0.9610 | 32.91 dB | 0.9427 |
 ### 3.2.3 View 3 - 외부 출입문 + 기둥 + 목재 텍스처 비교
-![](https://i.imgur.com/fGSIhPs.jpeg)
+![](https://i.imgur.com/vifDM9T.jpeg)
 
 | Method | PSNR (Global) | SSIM (Global) | PSNR (ROI Mean) | SSIM (ROI Mean) |
 |--------|---------------|---------------|-----------------|-----------------|
-| auto | 31.90 dB | 0.9547 | 30.94 dB | 0.9333 |
-| no_rig_2 | 24.38 dB | 0.9218 | 23.92 dB | 0.8659 |
-| rig | 33.38 dB | 0.9631 | 33.30 dB | 0.9450 |
+| Postshot-Auto | 31.90 dB | 0.9547 | 30.94 dB | 0.9333 |
+| No Rig | 24.38 dB | 0.9218 | 23.92 dB | 0.8659 |
+| Rig-based | 33.38 dB | 0.9631 | 33.30 dB | 0.9450 |
 
 ### 3.2.4 View 4 - 기둥 + 목재 텍스처 비교 2
-![](https://i.imgur.com/lBHr67T.jpeg)
+![](https://i.imgur.com/FqtzDBA.jpeg)
 
 | Method   | PSNR (Global) | SSIM (Global) | PSNR (ROI Mean) | SSIM (ROI Mean) |
 | -------- | ------------- | ------------- | --------------- | --------------- |
-| auto     | 31.00 dB      | 0.9512        | 29.24 dB        | 0.9317          |
-| no_rig_2 | 25.25 dB      | 0.9249        | 23.96 dB        | 0.8780          |
-| rig      | 34.25 dB      | 0.9728        | 33.25 dB        | 0.9596          |
+| Postshot-Auto | 31.00 dB      | 0.9512        | 29.24 dB        | 0.9317          |
+| No rig | 25.25 dB      | 0.9249        | 23.96 dB        | 0.8780          |
+| Rig-based | 34.25 dB      | 0.9728        | 33.25 dB        | 0.9596          |
 
 ### 3.3 방법별 PSNR / SSIM 비교 결과
 
-- 네 개의 뷰(View 1~4) 모두에서 PSNR·SSIM 지표가 rig > auto > no_rig_2 순으로 나타남.
+- 네 개의 뷰(View 1~4) 모두에서 PSNR·SSIM 지표가 Rig-based > Postshot-Auto > No Rig 순으로 나타남.
 - 특히 rig 설정을 적용한 경우, Global 지표뿐 아니라 텍스처가 풍부한 ROI에서도 auto 대비 수 dB 높은 PSNR과 더 큰 SSIM을 보임.
-- 반대로 no_rig_2는 카메라 포즈 정렬이 불안정하여, 바닥 반사나 유리문 주변에서 블러 및 고스팅이 두드러지고, 정량 지표도 가장 낮게 측정됨.
-- 따라서, Insta360 X5의 5개 카메라 이미지를 rig 단위로 취급하여 포즈를 정렬하는 방식이 viewer에서의 시각적 품질 향상에 실질적인 효과가 있음을 확인함.
-
+- 반대로 No Rig는 카메라 포즈 정렬이 불안정하여, 바닥 반사나 유리문 주변에서 블러 및 고스팅이 두드러지고, 정량 지표도 가장 낮게 측정됨.
 
 ---
