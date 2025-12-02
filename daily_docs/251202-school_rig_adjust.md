@@ -92,7 +92,6 @@ school_01/
 ## 고찰
 
 ### 1. 마스킹으로 인한 바닥면 흑색화 현상 (Black Floor Artifact)
-- 현재 파이프라인에서는 Rig 촬영자의 손 노출을 막기 위해 하단 25%를 검은색으로 마스킹했는데, 이로 인해 Postshot 학습 시 해당 영역이 검은색 물체로 학습되는 현상이 발생함.
 ![](../video_picture/251202/mask_issue.png)
 - Down Group 의 pose가 Tilt Angle을 내리기에는 손 형태가 너무 많이 보이고, 올리기에는 기존 Up Group과 보이는 pose가 큰 차이가 없었음.
-- 이로 인해 하단 20%를 검은색으로 mask하는 방식을 택했지만, 최종적으로 Postshot train 도중 치명적인 에러가 발생함. 
+- 이로 인해 하단 20%를 검은색으로 mask하는 방식을 택했지만, 최종적으로 Postshot train 도중 해당 영역이 검은색 물체로 학습되는 치명적인 에러가 발생함.
