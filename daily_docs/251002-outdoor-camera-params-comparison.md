@@ -81,7 +81,7 @@ python realsense_capture_mac.py data/outside/input --num-images 150
   - cy = 569.93
   - k1, k2, p1, p2, k3 = 0.000000 (공장 캘리브레이션 완료, 왜곡 보정됨)
 
-![](../video_picture/251002_gaussian_view_outside_fixed.gif)
+![](../video_picture/251002/251002_gaussian_view_outside_fixed.gif)
 - 최적화 후 viewer 실행 결과
 
 
@@ -91,7 +91,7 @@ python realsense_capture_mac.py data/outside/input --num-images 150
 - 초기 focal length: 2304px (추정값)
 - Bundle Adjustment를 통한 최적화
 
-![](../video_picture/251002_gaussian_view_outside_auto.gif)
+![](../video_picture/251002/251002_gaussian_view_outside_auto.gif)
 - 최적화 후 viewer 실행 결과
 
 ---

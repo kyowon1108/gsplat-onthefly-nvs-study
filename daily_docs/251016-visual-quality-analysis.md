@@ -41,11 +41,11 @@ realsense D435로 촬용한 fhd의 225장 이미지를 3개의 연속된 그룹�
 
 **부분 재구성(GroupA, B, C)의 렌더링 품질이 전체 재구성보다 현저히 열등함**
 
-![](../video_picture/251016_compare_1.webp)
+![](../video_picture/251016/251016_compare_1.webp)
 
-![](../video_picture/251016_compare_2.webp)
+![](../video_picture/251016/251016_compare_2.webp)
 
-![](../video_picture/251016_compare_3.webp)
+![](../video_picture/251016/251016_compare_3.webp)
 
 
 시각적 관찰 결과:

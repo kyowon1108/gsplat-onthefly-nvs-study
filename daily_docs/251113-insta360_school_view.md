@@ -88,7 +88,7 @@
 
 **Camera Group 설정**:
 
-![](../video_picture/251113_camera_group.webp)
+![](../video_picture/251113/251113_camera_group.webp)
 
 | 설정 항목 | 값 | 설명 |
 |---------|---|------|
@@ -110,7 +110,7 @@
 
 ### 2.3 추출된 이미지 예시
 
-![](../video_picture/251113_image_list.jpg)
+![](../video_picture/251113/251113_image_list.jpg)
 
 **이미지 특징**:
 - 총 290장의 이미지 추출 (7프레임 당 하나씩)
@@ -128,19 +128,19 @@
 #### 3.1.1 Gaussian Splatting View vs 원본 이미지 비교
 
 **비교 샘플 1**:
-![](../video_picture/251113_compare_01.jpg)
+![](../video_picture/251113/251113_compare_01.jpg)
 
 **비교 샘플 2**:
-![](../video_picture/251113_compare_02.jpg)
+![](../video_picture/251113/251113_compare_02.jpg)
 
 **비교 샘플 3**:
-![](../video_picture/251113_compare_03.jpg)
+![](../video_picture/251113/251113_compare_03.jpg)
 
 **비교 샘플 4**:
-![](../video_picture/251113_compare_04.jpg)
+![](../video_picture/251113/251113_compare_04.jpg)
 
 **비교 샘플 5**:
-![](../video_picture/251113_compare_05.jpg)
+![](../video_picture/251113/251113_compare_05.jpg)
 
 ### 3.2 정성적 평가
 
