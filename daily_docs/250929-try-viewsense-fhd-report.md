@@ -74,17 +74,17 @@ D435의 FHD(1920x1080) 해상도로 촬영한 이미지를 두 가지 방식(고
 ### 2.2 시각적 품질 비교
 
 #### Case 1: D435 고정 파라미터
-![](../video_picture/250929_room_fhd_colmapfixed.gif)
+![](../video_picture/250929/250929_room_fhd_colmapfixed.gif)
 - 텍스처 디테일 손실 심각
 - 전반적으로 흐릿한 재구성 결과
 
 #### Case 2: D435 자동 파라미터
-![](../video_picture/250929_room_fhd_colmapauto.gif)
+![](../video_picture/250929/250929_room_fhd_colmapauto.gif)
 - 고정 파라미터와 유사한 품질
 - 카메라 캘리브레이션 방식의 영향 미미
 
 #### Case 3: iPhone (참조 기준)
-![](../video_picture/250929_room_iphone_result.jpg)
+![](../video_picture/250929/250929_room_iphone_result.jpg)
 - 선명한 텍스처와 풍부한 디테일
 - 우수한 색상 재현과 낮은 노이즈
 

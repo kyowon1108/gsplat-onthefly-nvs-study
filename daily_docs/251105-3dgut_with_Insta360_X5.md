@@ -9,7 +9,7 @@
 - 최대 4K 화질로 view 할 수 있었으며, 두번째 영상에는 Insta360 X5로 PureVideo 모드로 설정해 촬영했다는 것이 명시되어 있음.
 
 ### 직접 촬영한 이미지 중 1 프레임
-![](../video_picture/251106-fisheye_room.jpg)
+![](../video_picture/251106/251106-fisheye_room.jpg)
 
 - 8K (3840x3840) 로 촬영됨.
 - 3DGUT의 Unscented Transform은 OPENCV_FISHEYE 같은 명시적 왜곡 모델 없이도 비선형 투영을 정확하게 처리할 수 있어, 카메라 모델별 Jacobian 유도가 불필요하고 더 범용적임.

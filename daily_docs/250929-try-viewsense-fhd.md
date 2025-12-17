@@ -8,18 +8,18 @@ Intel RealSense D435 1920x1080(fhd) 카메라 파라미터:
 ## 결과 시각화
 
 ### 1. fhd로 사진을 촬영한 후 D435의 내부 파라미터를 사용해 최적화
-![](../video_picture/250929_room_fhd_colmapfixed.gif)
+![](../video_picture/250929/250929_room_fhd_colmapfixed.gif)
 - D435의 fhd 환경 내부 파라미터를 사용해 최적화를 했지만 detail하게 결과가 도출되지 못함.
 
 
 ### 2. fhd로 사진을 촬영한 후 colmap 연산시 파라미터 계산 후 최적화
-![](../video_picture/250929_room_fhd_colmapauto.gif)
+![](../video_picture/250929/250929_room_fhd_colmapauto.gif)
 - convert.py에서 내부 파라미터를 자동으로 계산하게 했음에도 동일하게 detial하지 못한 결과가 생성됨.
 
 ### 3. 기존 iphone으로 촬영한 환경과 images 사진 비교
 
 #### 01 - 기존 iPhone 촬영
-![](../video_picture/250929_room_iphone_result.jpg)
+![](../video_picture/250929/250929_room_iphone_result.jpg)
 - **해상도**: 4042 x 3925 pixel (약 15.9 메가픽셀)
 - **특징**:
   - 선명한 텍스처와 디테일 보존
@@ -29,7 +29,7 @@ Intel RealSense D435 1920x1080(fhd) 카메라 파라미터:
   - Smart HDR로 밝은 부분과 어두운 부분 균형
 
 #### 02 - D435 내부 파라미터 고정 사용
-![](../video_picture/250929_room_fhd_colmapfixed_result.jpg)
+![](../video_picture/250929/250929_room_fhd_colmapfixed_result.jpg)
 - **해상도**: 1902 x 1058 pixel (약 2.0 메가픽셀)
 - **문제점**:
   - 흐릿하고 뭉개진 텍스처
@@ -39,7 +39,7 @@ Intel RealSense D435 1920x1080(fhd) 카메라 파라미터:
   - 조명 부족으로 인한 전반적인 어두움
 
 #### 03 - 내부 파라미터 자동 계산 사용
-![](../video_picture/250929_room_fhd_colmapauto_result.jpg)
+![](../video_picture/250929/250929_room_fhd_colmapauto_result.jpg)
 - **해상도**: 1902 x 1058 pixel (약 2.0 메가픽셀)
 - **결과**:
   - 고정 파라미터와 거의 동일한 품질
