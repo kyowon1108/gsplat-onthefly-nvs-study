@@ -1,109 +1,388 @@
-# 1. Skyfall-GS Process
-![](https://i.imgur.com/LHLLNGH.jpeg)
-- notebooklm으로 생성한 사진.
+## 1. Skyfall-GS  
+  
+- arXiv: 2510.15869  
+- Paper: Skyfall-GS: Synthesizing Immersive 3D Urban Scenes from Satellite Images  
+- Code: [https://github.com/jayin92/Skyfall-GS](https://github.com/jayin92/Skyfall-GS)  
+  
+### 1.1 문제 정의  
+  
+**위성 이미지의 문제**  
+- 약한 parallax (400km 거리) → 깊이 정보 거의 없음  
+- multi-date 조명 변화 (아침/정오/저녁, 계절)  
+- 부동(floater) 생성  
+- 건물 정면/옆면 못 봄 (occlusion)  
+  
+### 1.2 Skyfall-GS의 해결책  
+  
+**Two-Stage Pipeline**:  
+- 논문에서는 NVIDIA RTX A6000 D6 48GB 사용.  
 
-## Stage 1. 재구성 (Reconstruction)
-### 1-1. 기본 GS 수행
-- 위성 이미지 + 위성 SfM으로 얻은 camera pose를 이용해 기본 3DGS 장면을 생성함.
+| Stage | 입력 | 출력 | 시간 |  
+|-------|------|------|------|  
+| **Stage 1** | 위성 다중 이미지 | 3DGS | ~1시간 |  
+| **Stage 2** | Stage 1 GS + Diffusion | 최종 3DGS (48 FPS) | ~6시간 |  
 
-### 1-2. Appearance Modeling (조명/계절이 다른 위성 사진 대응)
-**Why?** : 조명/계절 때문에 이미지마다 조금씩 다르게 보이는 문제 발생.
-- 이를 해결하기 위해 appearance MLP 쪽으로 분리해서 처리함.
+  
+---  
+## 2. Stage 1 - 위성 이미지에서 초기 3DGS 재구성  
+  
+### 2.1 카메라 모델: RPC -> Perspective  
+  
+**위성의 특수성**  
+- 일반 카메라: 내부/외부 파라미터를 직접 정의함.  
+- 위성: **RPC(Rational Polynomial Camera)** 모델  
+- 이미지 좌표 <-> 지리적 좌표를 직접 매핑함.  
+- Perspective 파라미터로 근사화 필요.  
+  
+**Skyfall-GS 방법**  
+- SatelliteSfM (Zhang et al., 2019) 사용  
+- RPC -> Perspective 근사화  
+- Sparse SfM points로 GS 초기화  
+  
+### 2.2 Appearance Modeling (Multi-date 조명)  
+  
+**문제**:  
+- 표준 3DGS에서는 View-dependent color만 표현함.  
+- 계절, 시간이 달라지는 multi-date 이미지 동시 학습 불가.  
+  
+**해결책**  
+```  
+색 변환 (Affine):  
+c̃_i(r) = γ ⊙ ĉ_i(r) + β  
+  
+  
+파라미터:  
+(β, γ) = f(e_j, g_i, c̄_i)  
+  
+  
+구성:  
+- e_j: Per-image embedding (32차원, 이미지 조명)  
+- g_i: Per-Gaussian embedding (24차원, 위치 기반 그림자)  
+- c̄_i: 0차 SH  
+- f: Lightweight MLP (2층 128 neurons)  
+```  
+  
+**학습률**  
+- e_j: 0.001 (모든 픽셀에 영향)  
+- g_i: 0.005  
+- f: 0.0005 (가장 느림)  
+  
+**SH 제한**  
+- 0차, 1차만 사용  
+- 고주파 view-dependent 효과(2차 이상)는 의도적으로 봉인  
+- 색 변화가 기하학과 섞이지 않도록 분리   
+  
+### 2.3 Opacity Entropy Regularization (Floaters 제거)
+  
+**문제**:  
+- Color loss만으로는 부동 제거 불가  
+- 옥상의 Gaussian과 공중의 Gaussian 모두 색 같음  
+  
+**해결책**    
+```  
+L_op = -Σ_i [α_i log(α_i) + (1-α_i) log(1-α_i)]  
+  
+  
+Binary Entropy 함수:  
+H(α) = 0 (α=0 또는 1, 최소)  
+H(α) = 1 (α=0.5, 최대)  
+```  
+  
+  
+**왜 Entropy? (다른 방법과의 비교)**:
 
-![](https://i.imgur.com/iDlCNyI.png)
-- 1. 입력
-    - `c` : 기본 SH 색
-    - `g` : Gaussian 위치/맥락 임베딩
-    - `a` : 이미지 조명·조건 임베딩
-2. 이 셋을 작은 MLP에 넣어서
-    - `m` : 색에 곱해 줄 스케일 (채도/밝기 조정 느낌)
-    - `Δc` : 색에 더해 줄 오프셋 (톤/색감 보정 느낌)
-3. 최종 출력 색:
-    - `c' = c * m + Δc`
+| 방법             | 효과            | 문제               |
+| -------------- | ------------- | ---------------- |
+| L1 Sparsity    | 작은 α 선호 (0.1) | 중간값 (0.5) 제거 못 함 |
+| L2 Sparsity    | 약한 페널티        | 중간값 제거 못 함       |
+| Entropy (본 논문) | 중간값 자체를 싫어함   | α=0 또는 1 강제      |
 
-### 1-3. Satellite 환경에서의 floaters 억제 (불투명도(Opacity) 엔트로피 정규화
-**Why?** :  실제 표면이 아닌데도 Gaussian이 공중에 뜨는 floaters가 많이 발생함.
-- 이때 opacity가 0(완전 투명)이나 1(완전 불투명)으로만 결정되도록 정규화 진행함.
-![](https://i.imgur.com/aqnIQnR.png)
+**Loss 구성**  
+```  
+L_sat = L_color + λ_op * L_op + λ_depth * L_depth  
+= 1.0 + 10 * L_op + 0.5 * L_depth  
+```  
+- λ_op = 10 (매우 큼): 가우시안 많으므로 상대적 영향 조절  
+- Densification (1000~21000 iter): α < 0.01인 가우시안 자동 제거  
+  
+### 2.4 Pseudo-camera Depth Supervision (깊이 강화)  
 
-### 1-4. Pseudo-camera depth supervision
-**Why?** : 지면에서 바라보았을 때 건물 높이나 거리감이 이상해지는 것을 줄이기를 위함.
-- 장면 주변에 지상과 가까운 pseudo-cameas를 뿌려 GS로 RGB + depth를 렌더링함.
-- 렌더된 RGB를 단안 깊이 모델(MoGe)에 넣어서 좀 더 그럴듯한 깊이 맵을 얻음.
-- 이 때 GS depth와 MoGe depth는 절대 스케일이 다르니, 값 자체를 맞추는 대신 두 depth 맵의 패턴이 얼마나 비슷한지(상관)를 보고 loss로 사용.
-![](https://i.imgur.com/a9TTVZ7.png)
+#### 2.4.1 Pseudo-camera 위치 설정  
+  
+```  
+Look-at point (Random):  
+- (x, y, 0): x, y ~ N(0, 128)  
+- 도시 중심 근처 정규분포  
+  
+  
+카메라 배치 (Orbital):  
+- Azimuth: 균등분포 [0, 2π)  
+- Elevation: 80° -> 45° (선형 감소)  
+- Radius: 300 -> 250 units (선형 감소)  
+  
+  
+샘플링:  
+- 매 10 iteration마다  
+- 24개 카메라  
+- Iteration 1000~21000  
+- 총 ~3,000회  
+```  
+  
+**Elevation 점진적 감소의 의미**:  
+```  
+80°: GS가 이미 잘 배운 각도 (위성) -> 안정적  
+65°: 새로운 각도 -> 기하학 강화  
+45°: 준비 단계 (Stage 2 진행)  
+```  
 
-## Stage 2. 합성 (Synthesis)
-### 2-1. Diffusion Refinement
-- Stage 1 GS로 렌더한 image에서는 특히 낮은 고도·지면 뷰는 텍스처가 깨지고, floaters가 많음.
-- 이를 해결하기 위해 image를 input으로 넣고, model로는 FLowEdit + FLUX.1 조합 사용.
-- **FlowEdit** : 완전 noise에서 image를 생성하는 것이 아닌, 기존 렌더링 + prompt 쌍을 받아 "현재 렌더링이 어떤 식으로 망가져 있는지, 어떤 느낌으로 고쳐줬으면 하는지"를 text로 전달해 구조는 가능한 유지한 채 texture/edge/shadow 같은 부분을 개선해 줌.
-![](https://i.imgur.com/7Yo0jCt.png)
+#### 2.4.2 Depth Rendering과 MoGe  
+  
+**GS 렌더**:  
+```  
+RGB: 1024×1024 이미지  
+Depth: α-blended depth map  
+D̂_GS = Σ α_i * depth_i (앞에서 뒤로)  
+```  
+ 
+**MoGe (Monocular Geometry Estimator)**:  
+- Pre-trained off-the-shelf 모델 (CVPR 2025, Wang et al.)  
+- RGB -> Scale-invariant depth  
+- "절대 깊이는 모르지만 상대 패턴은 추정"  
+  
+#### 2.4.3 Depth Loss: Pearson Correlation  
 
-### 2-2. Multi-sample Diffusion
-- Diffusion의 특성 (랜덤성)으로 인해 같은 view라도 생성할 때마다 detail이 조금씩 다른 이미지가 출력됨.
-- But, view A와 B에서 본 같은 건물의 모양이 서로 모순되면 심각한 error가 발생함.
-- 그래서 한 view당 Diffusion을 여러 번 돌린 결과를 전부 GS 학습에 사용함.
+```  
+L_depth = ||PCorr(D̂_GS, D̂_est)||_1  
+  
+  
+PCorr(A, B) = Cov(A, B) / √[Var(A) × Var(B)]  
+∈ [-1, +1]  
+```  
 
-| Process |                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------ |
-| 1       | **GS 렌더링:** 선택한 카메라 포즈로 GS에서 이미지를 렌더해서 `I_render`를 얻는다.                                                |
-| 2       | **Diffusion 샘플 1:** `I_render`를 FlowEdit + FLUX.1에 넣고, seed=1로 돌려 정제 이미지 `I_diff_1`을 얻는다.              |
-| 3       | **Diffusion 샘플 2:** 같은 `I_render`를 seed=2로 돌려 `I_diff_2`를 얻는다.                                         |
-| 4       | **Diffusion 샘플 N:** 같은 방식으로 seed를 바꿔가며 총 N번 실행해 `I_diff_1, ..., I_diff_N`을 만든다.                        |
-| 5       | **Loss 계산:** GS 렌더 `I_render`와 각 정제 이미지 `I_diff_k`(k=1..N) 사이의 차이를 모두 계산하고, 이를 평균 내서 하나의 loss로 만든다.    |
-| 6       | **GS 업데이트:** 이 평균 loss에 대해 GS 파라미터를 업데이트한다.                                                            |
-| 7       | **반복:** 업데이트된 GS로 다시 1단계(렌더링)부터 반복하면서, 특정 샘플 하나가 아니라 여러 Diffusion 샘플이 공통으로 유지하는 구조 쪽으로 기하가 수렴하도록 유도한다. |
+**왜 절대값이 아닌 상관관계?**
 
-##### 2-3. Curriculum Learning for Camera Angles
-- Stage 2의 loop를 모든 각도에 무작위로 적용하면 GS를 수행할 때 구조가 망가질 위험이 큼.
-- Skyfall-GS에서는 이를 카메라 각도에 대해 교과정(curriculum)을 걸음.
-- 전체를 여러 Episode로 나누고, Episode가 진행될 수록 카메라 고도(elevation)을 점점 낮춤.
+| 요소     | 문제                             |
+| ------ | ------------------------------ |
+| MoGe   | 단안 깊이 (한 이미지), Scale-invariant |
+| GS 렌더  | 실제 지상과 거리 다를 수 있음              |
+| **해결** | **패턴만 비교** (스케일 무관)            |
 
-| Episode | 고도각 예시 | 느낌                  |
-| ------- | ------ | ------------------- |
-| 1       | 85°    | 거의 위성 뷰 (거의 직하)     |
-| 2       | 65°    | 아직 위에서 보는 느낌이 강함    |
-| 3       | 45°    | 건물 옆/정면이 조금씩 보이기 시작 |
-| 4       | 25°    | 정면/골목이 꽤 많이 보이는 각도  |
-| 5       | 5°     | 거의 지면 시점에 가까운 뷰     |
-- Episode 1–2:  
-    이미 Stage 1에서 잘 맞추고 있던 “편한 각도”에서 Diffusion supervision을 받으면서  
-    기존 구조를 더 정제하는 단계.
-- Episode 3–5:  
-    점점 어려운 각도(정면/골목/지면)를 추가하면서,  
-    새 영역을 조금씩 학습하는 단계.
+```  
+예시:  
+정상: D̂_GS=[10m, 10m | 50m, 50m]  
+D̂_est=[0.3, 0.3 | 0.8, 0.8]  
+PCorr: +1 (일치) -> L_depth 작음 ->  
+  
+  
+부동: D̂_GS=[10m, 10m, 50m(부동!) | 50m, 50m]  
+D̂_est=[0.3, 0.3, 0.3 | 0.8, 0.8]  
+PCorr: 낮음 (패턴 다름) -> L_depth 큼 (경고!)  
+```  
+  
+### 2.5 Stage 1 파라미터 및 최적화  
+  
+**3DGS 수정**  
 
-- 각 에피소드 안에서는
-1. 장면 안에 **look-at point**들을 그리드처럼 깔고 (예: 3×3),​
-2. 각 포인트 주위를 정해진 고도각으로 도는 orbital camera들을 샘플링해서,
-3. 그 카메라들에서 렌더 -> Diffusion -> GS 재학습을 반복함.
+| 파라미터                   | 표준     | Skyfall-GS | 이유                 |
+| ---------------------- | ------ | ---------- | ------------------ |
+| Scaling LR             | 0.005  | 0.001      | 오버헤드 뷰 과도 신장 방지    |
+| Densify grad threshold | 0.0002 | 0.0001     | 근거리 정보 부족          |
+| Max covariance         | -      | 20         | 큰 가우시안(부동처럼 보임) 제거 |
+| Densify range          | -      | 1000~21000 | 초반 안정, 후반 미세 정제    |
 
----
-# 2. GS가 하는 역할
+**Loss 함수**  
+```  
+L_sat = λ_DSSIM * DSSIM + (1-λ_DSSIM) * ||Ĉ-C||₁  
++ 10 * L_op + 0.5 * L_depth  
+```  
+- λ_DSSIM = 0.2  
+  
+---  
+## 3. Stage 2 - Curriculum 기반 Iterative Refinement (합성)
 
-## Stage 1
-- 위성 이미지로부터 도시의 기본 3D 기하학(건물 배치, 도로, 지형) 재구성
-- Appearance Modeling, Floater 억제, Depth 감독으로 "위성 시점에서 신뢰할 수 있는 3D 표현" 제공
-- 결과: 위에서 내려다본 도시는 깨끗하지만, 지면 뷰는 아직 불완전한 상태
+### 3.1 Curriculum Learning Strategy  
+  
+```  
+구성:  
+N_e = 5 Episodes  
+각 Episode: 10,000 iterations  
+총: 50,000 iterations  
+  
+  
+Look-at Points:  
+- DFC2019: 3×3 grid (N_p=9)  
+- GoogleEarth: N_p=16  
+  
+  
+카메라 (per Look-at point):  
+- N_v = 6 cameras  
+- N_s = 2 samples (Multi-sample)  
+  
+  
+Elevation 변화 (선형):  
+- Episode 1: 85°  
+- Episode 2: ~75°  
+- Episode 3: ~65°  
+- Episode 4: ~55°  
+- Episode 5: 45°  
+  
+  
+Radius 변화 (DFC2019):  
+- 초기: 300 units  
+- 최종: 250 units  
+  
+  
+렌더 해상도: 2048×2048  
+```  
 
-## Stage 2
-- 항상 "유일한 3D 표현"이자 렌더링 엔진 역할 (Diffusion은 2D 정제만 담당)
-- Diffusion이 만든 여러 개의 고품질 이미지들을 동시에 supervision으로 받음
-- 특정 Diffusion 샘플 하나에 과적합하지 않고, 여러 샘플이 공통으로 유지하는 3D 구조 쪽으로 수렴
-- 결과: 기하학적으로 일관된 3D 장면이면서, 지면 시점도 포토리얼한 렌더링 가능
+**Curriculum의 의미**:  
+```  
+높은 고도부터 시작:  
+└─ GS가 이미 잘 배운 구간 (위성) -> 높은 품질  
+  
+  
+점진적으로 낮춤:  
+└─ 어려운 각도 점진적 도입  
+└─ 기하학 구조 보호  
+```  
 
----
-# 3. Stage 2에서 GS와 Diffusion의 역할 분담
+### 3.2 Render Refinement: FlowEdit + FLUX.1  
+  
+**Diffusion 모델**:  
+- FLUX.1 [dev]: 12B params, Flow Matching 기반  
+- Pre-trained, 재학습 없음  
+- FlowEdit: Inversion-free image editing  
+  
+**Prompt Pairs**  
+  
+```  
+Source:  
+"Satellite image of an urban area with modern and older  
+buildings, roads, green spaces. Some areas appear distorted,  
+with blurring and warping artifacts."  
+  
+  
+Target:  
+"Clear satellite image of an urban area with sharp buildings,  
+smooth edges, natural lighting, and well-defined textures."  
+```  
 
-| 역할       | GS                             | Diffusion             |
-| -------- | ------------------------------ | --------------------- |
-| **주체**   | 3D 표현 + 렌더링                    | 2D 이미지 정제             |
-| **책임**   | 기하학적 일관성 (모든 뷰에서 같은 건물은 같은 모양) | 포토리얼리즘 (텍스처, 조명, 디테일) |
-| **입력**   | 카메라 포즈                         | GS 렌더링 (불완전한 이미지)     |
-| **출력**   | 렌더된 이미지                        | 고품질 정제 이미지            |
-| **업데이트** | O (매 iteration마다)              | X (고정된 사전학습 모델)       |
-- GS 렌더링이 "Diffusion 입장에선 denoising 중간 단계"처럼 작동
-- Diffusion이 개선한 이미지로 GS를 다시 학습시키는 반복
-- 이를 통해 구조는 3D 일관되고, 텍스처는 고품질인 최종 결과 달성
+**FlowEdit 파라미터**  
+```  
+n_min = 4 (약한 노이즈, 구조 보존)  
+n_max = 10 (강한 노이즈, 편집량)  
+cfg_source = 1.5  
+cfg_target = 5.5  
+steps = 28 (FLUX.1 denoising)  
+```  
 
+### 3.3 Multi-sample Diffusion  
+  
+**목적**: 각 뷰 간 3D 일관성 강화  
+
+```  
+같은 GS 렌더에 대해 N_s=2회 Diffusion:  
+├─ FlowEdit+FLUX.1 (seed=0) -> I_diff_1  
+└─ FlowEdit+FLUX.1 (seed=1) -> I_diff_2  
+  
+  
+Loss:  
+L_color = (1/2) × (||I_r - I_d1||² + ||I_r - I_d2||²)  
+  
+  
+효과:  
+└─ 두 이미지의 평균 패턴으로 수렴  
+└─ Hallucination 회피  
+└─ 3D 일관성 강화 ->  
+```  
+  
+### 3.4 Iterative Dataset Update (IDU) 루프  
+
+**한 번의 Iteration**:  
+  
+```  
+Step 1: 렌더  
+├─ Curriculum elevation에서 카메라 샘플  
+├─ Stage 1 GS -> RGB 렌더 + Depth  
+  
+  
+Step 2: Diffusion 정제 (Multi-sample)  
+├─ FlowEdit+FLUX.1 (N_s=2)  
+└─ 약 6초/iteration  
+  
+  
+Step 3: Loss 계산  
+├─ L_color: 렌더 vs 정제 이미지  
+├─ L_depth: Depth correlation  
+└─ L_IDU = L_color + 0.5 * L_depth  
+  
+  
+Step 4: GS 업데이트  
+├─ Backpropagation  
+├─ Opacity regularization: **비활성화** ← 중요!  
+└─ 다음 iteration  
+```  
+  
+**Opacity Regularization 비활성화**  
+```  
+Stage 1: L_op 활성화 -> Floaters 제거  
+Stage 2: L_op 비활성화 (제거)  
+이유: Multi-view consistency가 대신 역할  
+효과: 반투명 구조 표현 가능  
+```  
+  
+**데이터 샘플링 전략**  
+```  
+각 Episode 학습 이미지:  
+├─ 75%: Diffusion으로 정제한 이미지 (신규 감독)  
+└─ 25%: 위성 원본 이미지 (의미론적 일관성)  
+  
+  
+효과:  
+└─ Diffusion 이미지가 위성과 의미 일치  
+└─ 과도한 hallucination 방지  
+```  
+  
+  
+### 3.5 Stage 2 Loss 및 최적화  
+  
+  
+**Loss 함수**:  
+```  
+L_IDU = L_color + λ_depth * L_depth  
+= 1.0 + 0.5 * L_depth  
+```  
+  
+  
+**Stage 1과의 비교**:  
+```  
+Stage 1:  
+L_sat = L_color + λ_op * L_op + λ_depth * L_depth  
+= 1.0 + 10 * L_op + 0.5 * L_depth  
+  
+  
+Stage 2:  
+L_IDU = L_color + λ_depth * L_depth  
+= 1.0 + 0.5 * L_depth  
+(L_op 제거!)  
+```  
+  
+  
+### 3.6 Stage 2 최종 결과  
+  
+**학습**: 5 episodes × 10K iter = 50K iter ≈ 6시간  
+
+**최종 GS 특성**: 
+
+| 항목       | 위성 시점 (85°) | 지면 시점 (45°) |
+| -------- | ----------- | ----------- |
+| 기하학      | 정확 (유지)     | 완성          |
+| 텍스처      | 완벽          | 포토리얼        |
+| Floaters | 제거          | 제거          |
+
+**성능**:  
+- T4 GPU: 11 FPS  
+- RTX A6000: 48 FPS  
+- MacBook Air M2: 40 FPS  
+  
+  
