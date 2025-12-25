@@ -14,7 +14,7 @@
   
 ### 1.2 Skyfall-GS의 해결책  
   
-**Two-Stage Pipeline**:  
+**Two-Stage Pipeline**
 - 논문에서는 NVIDIA RTX A6000 D6 48GB 사용.  
 
 | Stage | 입력 | 출력 | 시간 |  
@@ -87,8 +87,7 @@ Binary Entropy 함수:
 H(α) = 0 (α=0 또는 1, 최소)  
 H(α) = 1 (α=0.5, 최대)  
 ```  
-  
-  
+
 **왜 Entropy? (다른 방법과의 비교)**:
 
 | 방법             | 효과            | 문제               |
@@ -97,6 +96,8 @@ H(α) = 1 (α=0.5, 최대)
 | L2 Sparsity    | 약한 페널티        | 중간값 제거 못 함       |
 | Entropy (본 논문) | 중간값 자체를 싫어함   | α=0 또는 1 강제      |
 
+- entropy가 floater 제거에 가장 잘 맞는 선택임. (중간값인 α를 제거)
+
 **Loss 구성**  
 ```  
 L_sat = L_color + λ_op * L_op + λ_depth * L_depth  
@@ -104,6 +105,8 @@ L_sat = L_color + λ_op * L_op + λ_depth * L_depth
 ```  
 - λ_op = 10 (매우 큼): 가우시안 많으므로 상대적 영향 조절  
 - Densification (1000~21000 iter): α < 0.01인 가우시안 자동 제거  
+
+- “color 1 : opacity 10 : depth 0.5” 정도 비율로 세 개의 loss를 섞어서 최적화한다는 뜻.
   
 ### 2.4 Pseudo-camera Depth Supervision (깊이 강화)  
 
@@ -130,12 +133,13 @@ Look-at point (Random):
   
 **Elevation 점진적 감소의 의미**:  
 ```  
-80°: GS가 이미 잘 배운 각도 (위성) -> 안정적  
-65°: 새로운 각도 -> 기하학 강화  
-45°: 준비 단계 (Stage 2 진행)  
+초기(80°): 거의 위성에 가까운 높은 각도 -> GS가 이미 잘 맞추는 구간에서 시작 -> 안정적인 depth 감독
+중간(65°): 점점 옆에서 보는 뷰 추가 -> 평면/건물 높이 패턴을 더 잘 배우게 됨.
+후반(45°): 약간 낮은 각도 -> Stage 2에서 더 낮은 각도로 내려가기 전 준비 단계
+
 ```  
 
-#### 2.4.2 Depth Rendering과 MoGe  
+#### 2.4.2 Depth Rendering + MoGe  
   
 **GS 렌더**:  
 ```  
@@ -145,11 +149,11 @@ D̂_GS = Σ α_i * depth_i (앞에서 뒤로)
 ```  
  
 **MoGe (Monocular Geometry Estimator)**:  
-- Pre-trained off-the-shelf 모델 (CVPR 2025, Wang et al.)  
-- RGB -> Scale-invariant depth  
+- Pre-trained 단안 기하 모델 (CVPR 2025, Wang et al.)  
+- GS로 렌더한 RGB 이미지 입력 -> scale-invariant depth D̂_est 출력
 - "절대 깊이는 모르지만 상대 패턴은 추정"  
   
-#### 2.4.3 Depth Loss: Pearson Correlation  
+#### 2.4.3 Depth Loss (Pearson Correlation)
 
 ```  
 L_depth = ||PCorr(D̂_GS, D̂_est)||_1  
@@ -166,18 +170,6 @@ PCorr(A, B) = Cov(A, B) / √[Var(A) × Var(B)]
 | MoGe   | 단안 깊이 (한 이미지), Scale-invariant |
 | GS 렌더  | 실제 지상과 거리 다를 수 있음              |
 | **해결** | **패턴만 비교** (스케일 무관)            |
-
-```  
-예시:  
-정상: D̂_GS=[10m, 10m | 50m, 50m]  
-D̂_est=[0.3, 0.3 | 0.8, 0.8]  
-PCorr: +1 (일치) -> L_depth 작음 ->  
-  
-  
-부동: D̂_GS=[10m, 10m, 50m(부동!) | 50m, 50m]  
-D̂_est=[0.3, 0.3, 0.3 | 0.8, 0.8]  
-PCorr: 낮음 (패턴 다름) -> L_depth 큼 (경고!)  
-```  
   
 ### 2.5 Stage 1 파라미터 및 최적화  
   
@@ -190,13 +182,11 @@ PCorr: 낮음 (패턴 다름) -> L_depth 큼 (경고!)
 | Max covariance         | -      | 20         | 큰 가우시안(부동처럼 보임) 제거 |
 | Densify range          | -      | 1000~21000 | 초반 안정, 후반 미세 정제    |
 
-**Loss 함수**  
-```  
-L_sat = λ_DSSIM * DSSIM + (1-λ_DSSIM) * ||Ĉ-C||₁  
-+ 10 * L_op + 0.5 * L_depth  
-```  
-- λ_DSSIM = 0.2  
-  
+- Scaling LR : 줄여서 geometry가 과도하게 부풀어 오르지 않게 막는다.
+- Densify grad threshold :  낮춰서 조금만 gradient가 있어도 새 가우시안을 추가해주겠다.
+- Max covariance : 일정 크기 이상으로 커진 Gaussian은 제대로 된 surface라기보다는 노이즈일 확률이 높다 라고 보고 잘라버린다.
+- Densify range : 1000~21000 iteration 구간에서만 적극적으로 가우시안을 추가/삭제한다. 이후에는 주로 파라미터 미세 조정만 (scale/opacity/color 조정) 한다.
+
 ---  
 ## 3. Stage 2 - Curriculum 기반 Iterative Refinement (합성)
 
@@ -249,10 +239,10 @@ Radius 변화 (DFC2019):
 ### 3.2 Render Refinement: FlowEdit + FLUX.1  
   
 **Diffusion 모델**:  
-- FLUX.1 [dev]: 12B params, Flow Matching 기반  
-- Pre-trained, 재학습 없음  
+- FLUX.1 [dev]: 12B params, Flow Matching 기반 Pre-trained 모델
 - FlowEdit: Inversion-free image editing  
-  
+- FLUX.1 [dev] 모델을 가져다 쓰고 거기에 FlowEdit 방법을 적용해서 GS 렌더 이미지를 정제함.
+
 **Prompt Pairs**  
   
 ```  
@@ -269,11 +259,11 @@ smooth edges, natural lighting, and well-defined textures."
 
 **FlowEdit 파라미터**  
 ```  
-n_min = 4 (약한 노이즈, 구조 보존)  
-n_max = 10 (강한 노이즈, 편집량)  
-cfg_source = 1.5  
-cfg_target = 5.5  
-steps = 28 (FLUX.1 denoising)  
+n_min = 4 : 얼마나 “적게” 노이즈를 섞고 시작할지
+n_max = 10 : 얼마나 “많이” 섞을 수 있는지
+cfg_source = 1.5 : source prompt 영향 (현재 상태 유지)
+cfg_target = 5.5 : target prompt 영향 (깨끗한 쪽으로 밀기)
+steps = 28 : FLUX.1 denoising step 수
 ```  
 
 ### 3.3 Multi-sample Diffusion  
@@ -293,10 +283,10 @@ L_color = (1/2) × (||I_r - I_d1||² + ||I_r - I_d2||²)
 효과:  
 └─ 두 이미지의 평균 패턴으로 수렴  
 └─ Hallucination 회피  
-└─ 3D 일관성 강화 ->  
+└─ 3D 일관성 강화
 ```  
   
-### 3.4 Iterative Dataset Update (IDU) 루프  
+### 3.4 Iterative Dataset Update(IDU) 루프  
 
 **한 번의 Iteration**:  
   
@@ -319,16 +309,19 @@ Step 3: Loss 계산
   
 Step 4: GS 업데이트  
 ├─ Backpropagation  
-├─ Opacity regularization: **비활성화** ← 중요!  
+├─ Opacity regularization
 └─ 다음 iteration  
 ```  
   
 **Opacity Regularization 비활성화**  
 ```  
-Stage 1: L_op 활성화 -> Floaters 제거  
-Stage 2: L_op 비활성화 (제거)  
-이유: Multi-view consistency가 대신 역할  
-효과: 반투명 구조 표현 가능  
+Stage 1에서는 opacity entropy + pruning으로 floater를 강하게 정리함.
+
+하지만 Stage 2에서는
+이미 Multi-view 관찰 + Diffusion 기반 consistency가 있어서 굳이 entropy 강제까지 할 필요가 줄어듦
+
+대신, 유리/반투명 같은 구조를 표현하려면 α가 중간인 것도 어느 정도 허용해야 함
+-> L_op를 완전히 비활성화
 ```  
   
 **데이터 샘플링 전략**  
@@ -336,17 +329,14 @@ Stage 2: L_op 비활성화 (제거)
 각 Episode 학습 이미지:  
 ├─ 75%: Diffusion으로 정제한 이미지 (신규 감독)  
 └─ 25%: 위성 원본 이미지 (의미론적 일관성)  
-  
-  
+    
 효과:  
 └─ Diffusion 이미지가 위성과 의미 일치  
 └─ 과도한 hallucination 방지  
 ```  
-  
-  
+
 ### 3.5 Stage 2 Loss 및 최적화  
-  
-  
+
 **Loss 함수**:  
 ```  
 L_IDU = L_color + λ_depth * L_depth  
@@ -360,13 +350,11 @@ Stage 1:
 L_sat = L_color + λ_op * L_op + λ_depth * L_depth  
 = 1.0 + 10 * L_op + 0.5 * L_depth  
   
-  
 Stage 2:  
 L_IDU = L_color + λ_depth * L_depth  
 = 1.0 + 0.5 * L_depth  
-(L_op 제거!)  
+(L_op 제거)  
 ```  
-  
   
 ### 3.6 Stage 2 최종 결과  
   
