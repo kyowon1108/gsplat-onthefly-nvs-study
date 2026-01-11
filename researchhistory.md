@@ -6,7 +6,7 @@
 
 ## Phase 1: 환경 구축 & 기초 학습 (9/11 ~ 9/13)
 
-- [250911-installation-commands.md](daily_docs/250911-installation-commands.md) - Ubuntu 22.04 + CUDA 11.8 + Gaussian Splatting 설치
+- [250913-installation-commands.md](daily_docs/250913-installation-commands.md) - Ubuntu 22.04 + CUDA 11.8 + Gaussian Splatting 설치
 - [250911-3d-rendering-issues.md](daily_docs/250911-3d-rendering-issues.md) - SIBR Viewer 빌드 문제 해결 (OpenCV/Embree 버전 충돌)
 - [250911-sparse-settings.md](daily_docs/250911-sparse-settings.md) - COLMAP Sparse Reconstruction 파이프라인 정리
 - [250912-first-feedback.md](daily_docs/250912-first-feedback.md) - 평가 메트릭(PSNR, SSIM, LPIPS) 학습 및 용어 정리
@@ -39,6 +39,14 @@
 
 ---
 
+## Phase 5: 논문 연구 & Rig SfM 실험 (12/23 ~ 1/11)
+
+- [251223-study_skyfall_gs.md](daily_docs/251223-study_skyfall_gs.md) - Skyfall-GS 논문 분석, Two-Stage Pipeline (위성→3DGS)
+- [251226-school_rigged_SfM.md](daily_docs/251226-school_rigged_SfM.md) - COLMAP Rigged SfM macOS 실행, Rig 일관성 검증
+- [260111-saebit_rigged_SfM.md](daily_docs/260111-saebit_rigged_SfM.md) - No Rig vs Rig SfM 비교, 3D 포인트 35% 증가
+
+---
+
 ## 핵심 인사이트
 
 | 발견 | 내용 |
@@ -47,6 +55,8 @@
 | View Coverage | Point Cloud 개수보다 중요 |
 | Rig 기반 재구성 | 개별 카메라 재구성보다 우수 |
 | 360도 카메라 | 수평 Coverage 강점, 수직 한계 |
+| Rig SfM 효과 | 3D 포인트 +35%, Observations +119%, Track 길이 +62% |
+| Rig SfM 비용 | 수행 시간 약 2.3배 증가 (trade-off) |
 
 ---
 
