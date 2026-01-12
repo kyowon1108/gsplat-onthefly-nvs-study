@@ -1,7 +1,7 @@
-# COLMAP Rig 기반 SfM 결과 보고서
+# COLMAP Rig 기반 SfM(Structure from Motion) 결과 보고서
 
-- **No Rig (2-step)**: 표준 COLMAP SfM 실행 후, 그 결과를 참조하여 후처리
-- **Rig (1-step)**: 처음부터 Rig 제약을 적용하여 COLMAP SfM 실행
+- **No Rig**: 표준 COLMAP SfM (Rig 제약 없음)
+- **Rig**: No Rig 결과를 분석하여 Rig 파라미터를 도출한 뒤, Rig 제약을 적용하여 COLMAP SfM 재실행
 
 ## 1. 수행 환경
 
@@ -46,6 +46,26 @@
 
 ![Blender Rig 구성](../video_picture/260111/260111-blender_rig_image.png)
 
+> 위 그림은 Blender 360 Extractor에서 구성한 원본 Rig. 원형 배치(translation 포함)로는 COLMAP 수렴 실패하여, 2-step 결과를 참고해 translation을 제거하고 모든 카메라가 [0,0,0]에서 회전만 하도록 수정함.
+
+**좌표계 변환 (Blender → OpenCV/COLMAP)**
+
+- Blender : +X right, +Y forward, +Z up
+- OpenCV/COLMAP : +X right, +Y down, +Z forward
+
+```python
+# 변환 행렬 (Y, Z축 반전)
+T = np.diag([1, -1, -1])
+R_colmap = T @ R_blender @ T
+```
+
+**상대 회전 계산**
+
+기준 카메라(ref) 대비 각 카메라(cam)의 상대 회전:
+```
+cam_from_ref = R_cam.T @ R_ref
+```
+
 ### 3.3 Blender vs COLMAP 파라미터 비교
 
 | 항목 | Blender 360 Extractor | COLMAP 표준 SfM | 비고 |
@@ -55,13 +75,20 @@
 | Translation | 원형 배치 (반지름 ~0.5m) | [0, 0, 0] | 단일 시점으로 단순화 |
 | Rotation | Blender 좌표계 | OpenCV 좌표계 | 좌표 변환 적용 |
 
-> Blender 360 Extractor 파라미터로 Rig 제약 적용 시 수렴 실패. COLMAP 표준 SfM 결과를 기반으로 파라미터를 재설정하여 진행함.
-
 ### 3.4 COLMAP 옵션
 
-**Matching**
+**Feature Extractor**
 ```
---FeatureMatching.rig_verification 1    # Rig 기반 geometric verification
+--ImageReader.single_camera_per_folder 1  # 폴더별 단일 카메라로 인식
+--ImageReader.camera_model PINHOLE
+--ImageReader.camera_params 960,960,960,960
+```
+
+**Sequential Matching**
+```
+--FeatureMatching.rig_verification 1      # Rig 기반 geometric verification
+--SequentialMatching.overlap 10           # 프레임 간 오버랩 범위
+--SequentialMatching.quadratic_overlap 1  # 2차 오버랩 활성화
 ```
 
 **Mapper**
@@ -109,8 +136,8 @@
 
 | 지표 | No Rig | Rig | 변화 |
 |------|--------|-----|------|
-| Rig 수 | 9 | 1 | 통합됨 |
-| 프레임 수 | 414 | 46 | 그룹화됨 |
+| Rig 수 | - | 1 | 9개 카메라가 1개 Rig로 통합 |
+| 프레임 수 | - | 46 | 414장이 46개 프레임으로 그룹화 |
 | 등록된 이미지 | 414 (100%) | 414 (100%) | - |
 | **3D 포인트** | 99,681 | **134,796** | **+35%** |
 | **Observations** | 436,167 | **956,272** | **+119%** |
@@ -154,11 +181,11 @@ Frame (f0001.png):
 
 ### 6.2 Rig Verification 효과
 
-`--FeatureMatching.rig_verification 1` 옵션은 Rig 제약을 활용한 geometric verification을 수행하여 불량 매칭을 사전에 필터링함. 이로 인해 Mapper의 수렴 속도가 향상됨.
+`--FeatureMatching.rig_verification 1` 옵션은 Rig 제약을 활용한 geometric verification을 수행하여 불량 매칭을 사전에 필터링함. 단, Sequential Matching 단계에서 추가 연산이 발생하여 매칭 시간은 증가함 (~1분 → ~4분).
 
 ### 6.3 재투영 오차 증가 (0.87px → 0.92px)
 
-Rig 제약으로 인해 카메라 포즈의 자유도가 제한되어 재투영 오차가 소폭 증가함. 그러나 0.92px는 일반적으로 양호한 수준이며, 재구성 밀도의 큰 향상(+35%)을 고려하면 허용 가능한 trade-off임.
+Rig 제약으로 인해 카메라 포즈의 자유도가 제한되어 재투영 오차가 소폭 증가함. 0.92px는 COLMAP 권장 기준(1px 미만) 이내이며, 3D 포인트 35% 증가와의 trade-off로 판단.
 
 ### 6.4 수행 시간 증가 (×2.3)
 
