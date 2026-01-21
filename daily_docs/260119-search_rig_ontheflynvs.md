@@ -315,18 +315,11 @@ def compute_adaptive_iterations(freq_score, min_iters, max_iters, alpha):
 
 ### 8.2 평가 결과
 
-| 지표 | 값 | 설명 |
-|------|-----|------|
-| **PSNR** | 20.39 dB | Peak Signal-to-Noise Ratio |
-| **SSIM** | 0.636 | Structural Similarity Index |
-| **LPIPS** | 0.356 | Learned Perceptual Image Patch Similarity |
-
-### 8.3 분석
-
-**결과 해석:**
-- PSNR 20.39dB는 on-the-fly 실시간 처리 방식 대비 합리적인 수준
-- SSIM 0.636은 구조적 유사도가 중간 수준임을 나타냄
-- LPIPS 0.356은 지각적 품질에서 개선 여지가 있음을 시사
+| 지표 | 값 |
+|------|-----|
+| **PSNR** | 20.39 dB |
+| **SSIM** | 0.636 |
+| **LPIPS** | 0.356 |
 
 **참고 (PostShot 3DGS 비교):**
 | 방법 | PSNR | SSIM | LPIPS |
