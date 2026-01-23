@@ -90,15 +90,24 @@ On-the-fly NVS는 **clone/split 없이** 다음 전략 사용:
 
 ---
 
-## 3. 실시간 파이프라인 설계
+## 3. 실시간 파이프라인 설계 (최종 구현)
 
-### 3.1 핵심 아이디어
+### 3.1 최종 구현 방식
 
-On-the-fly NVS의 핵심은 **실시간 camera reconstruction**이며, 360 카메라 환경 적용 접근:
+On-the-fly NVS를 Insta360 X5 Multi-Camera Rig에 적용한 **Rig-Constrained Pose Estimation** 방식:
 
-1. **EQR 스트리밍 수신** → Insta360에서 실시간 EQR 프레임 획득
-2. **Virtual Pinhole 생성** → EQR → 9개 pinhole 이미지 변환
-3. **실시간 Reconstruction** → 각 프레임 view에서 pose 추정 + Gaussian 업데이트
+> 현재 구현은 Insta360 SDK 실시간 스트리밍 대신, 260111에 녹화된 EQR mp4 파일(`saebit.mp4`)에서 추출한 이미지를 사용. 실제 배포 시 SDK 스트리밍으로 대체 예정.
+
+1. **EQR 입력** → 녹화된 mp4에서 프레임 추출 (실배포: Insta360 SDK 실시간 스트리밍)
+2. **Virtual Pinhole 생성** → EQR → 9개 pinhole 이미지 변환 (GPU grid_sample)
+3. **Rig-Constrained BA** → Central camera (High_Cam08)만 최적화, 나머지는 상대 변환 적용
+4. **Gaussian Splatting** → Keyframe 기반 incremental reconstruction
+5. **Finetuning** → 전체 reconstruction 완료 후 추가 최적화
+
+**핵심 구현 내용:**
+- `RigConstrainedPoseInitializer`: Central camera만 최적화 (최적화 변수 9배 감소)
+- `train_multicam()`: Multi-camera rig 전용 학습 루프
+- `--save_at_finetune_epoch`: Epoch별 finetuning 결과 저장
 
 ### 3.2 파이프라인 타이밍
 
@@ -115,14 +124,14 @@ flowchart LR
         E --> F[Triangulation<br/>5ms]
     end
 
-    subgraph Gaussian ["가우시안 (350ms)"]
-        F --> G[Init + Opt<br/>350ms]
+    subgraph Gaussian ["가우시안 (530ms)"]
+        F --> G[Init + Opt<br/>530ms]
     end
 
     G --> H[Output]
 ```
 
-**Total: ~400ms (동기) → Keyframe 기반 1-6 FPS 운영**
+**Total: ~580ms/keyframe (동기) → Keyframe 기반 1.7 FPS**
 
 ### 3.3 단계별 처리 시간 (RTX 4060 Ti 16GB 실측)
 
@@ -135,57 +144,96 @@ flowchart LR
 | MiniBA Bootstrap | 956 ms | 최초 8프레임만 |
 | MiniBA Incremental (Rig) | 9 ms | Central cam만 최적화 |
 | Triangulation | 5 ms | |
-| Gaussian Init + Opt | 350 ms | 30 iters 기준 |
-| **Total (Incremental)** | ~400 ms | **Keyframe 기반 운영** |
+| Gaussian Init + Opt | 530 ms | 30 iters 기준 |
+| **Total (Incremental)** | **~580 ms** | **1.7 FPS** |
+| Finetuning (per epoch) | 4,000 ms | 전체 keyframes 재학습 |
 
-### 3.4 Insta360 X5 맞춤 전략
+**실측 데이터 (46 frames → 42 keyframes):**
+- 전체 reconstruction: 26.8초 (1.71 FPS)
+- Finetuning 3 epochs: +12.3초 (4.1초/epoch)
 
-| 전략 | 설명 |
-|------|------|
-| **A: Sequential** | 프레임별 9개 카메라를 하나로 취급, 중앙 카메라 pose 추정 |
-| **B: Rig-Constrained** | 중앙 카메라만 최적화, 나머지는 상대 변환 적용 (변수 9배 감소) |
-| **C: Multi-frame** | Frame t + t+1의 18개 view로 triangulation (Baseline 확보) |
+### 3.4 Insta360 X5 맞춤 전략 (최종 채택: B)
 
-**360 카메라 특수성 (현재 상황)**:
-- 상대 pose 사전 정의 → Calibration-free
-- 단일 지점 촬영 → Temporal baseline 필수
+| 전략 | 설명 | 채택 |
+|------|------|------|
+| A: Sequential | 프레임별 9개 카메라를 하나로 취급, 중앙 카메라 pose 추정 | |
+| **B: Rig-Constrained** | **중앙 카메라만 최적화, 나머지는 상대 변환 적용 (변수 9배 감소)** | **✓** |
+| C: Multi-frame | Frame t + t+1의 18개 view로 triangulation (Baseline 확보) | |
 
-### 3.5 기준 카메라 선정
+**360 카메라 특수성:**
+- 상대 pose 사전 정의 (blender_rig.json) → Calibration-free
+- Central camera: **High_Cam08 (315°)** - pairwise feature distance 합 최소
 
-논문 방법론(pairwise feature distance 합 최소)에 따라 **High_Cam08 (315°)** 선정. 중앙 카메라로서 Rig Constraint 최적화의 기준점 역할.
-
-### 3.6 실시간 가능성 평가
+### 3.5 실시간 가능성 평가
 
 **실험 환경**: saebit.mp4 → 46 프레임 × 9 카메라 = 414 이미지, 960×960
 
 | 입력 FPS | 시간 예산 | 처리 시간 | 여유 | 실시간 여부 |
 |----------|----------|----------|------|------------|
-| **1 FPS** | 1000 ms | 400 ms | **600 ms** | 동기 처리 가능 |
-| 3 FPS | 333 ms | 400 ms | -67 ms | Async 필요 |
-| 6 FPS | 166 ms | 400 ms | -234 ms | Async 필수 |
+| **1 FPS** | 1000 ms | 580 ms | **420 ms** | 동기 처리 가능 |
+| 1.7 FPS | 580 ms | 580 ms | 0 ms | 한계점 |
+| 3 FPS | 333 ms | 580 ms | -247 ms | Async 필요 |
+
+### 3.6 정량적 평가 결과
+
+**실험 설정:**
+- 입력: 46 frames (20프레임 간격 추출)
+- 테스트: test_hold=8 (6개 테스트 이미지)
+- Central camera: High_Cam08
+
+| 설정 | PSNR↑ | SSIM↑ | LPIPS↓ | Gaussians | 시간 |
+|------|-------|-------|--------|-----------|------|
+| Baseline | 17.29 | 0.548 | 0.397 | 594,354 | 26.8s |
+| +Finetune 1 epoch | 17.58 | 0.55 | 0.39 | 594,354 | 30.9s |
+| +Finetune 2 epochs | 17.81 | 0.56 | 0.39 | 594,354 | 35.0s |
+| **+Finetune 3 epochs** | **17.98** | **0.57** | **0.38** | 594,354 | 39.1s |
+
+**Finetuning 효과: PSNR +0.69 dB, SSIM +0.022, LPIPS -0.017**
 
 ### 3.7 정성적 평가 결과
 
-| 메트릭 | 값 |
-|--------|-----|
-| **Average PSNR** | 17.80 dB |
-| **Max PSNR** | 21.42 dB |
-| **SSIM** | 0.541 |
-| **LPIPS** | 0.391 |
+> GT | Baseline (PSNR: 17.29) | Finetuned (PSNR: 17.98) 순서로 비교
 
-| Frame | 비교 (GT \| Rendered) |
-|-------|-------------------------|
-| High_f0241-High_Cam08 | <img src="../video_picture/260123/260123-compare_01_High_f0241-High_Cam08.png" width="600"> |
-| Low_f0401-Low_Cam01 | <img src="../video_picture/260123/260123-compare_08_Low_f0401-Low_Cam01.png" width="600"> |
+| Frame | 비교 (GT \| Baseline \| Finetuned) |
+|-------|-------------------------------------|
+| central_f0000 | <img src="../video_picture/260124/260124_compare_central_f0000.png" width="900"> |
+| central_f0008 | <img src="../video_picture/260124/260124_compare_central_f0008.png" width="900"> |
+| central_f0016 | <img src="../video_picture/260124/260124_compare_central_f0016.png" width="900"> |
+| central_f0024 | <img src="../video_picture/260124/260124_compare_central_f0024.png" width="900"> |
+| central_f0032 | <img src="../video_picture/260124/260124_compare_central_f0032.png" width="900"> |
+| central_f0040 | <img src="../video_picture/260124/260124_compare_central_f0040.png" width="900"> |
+
+**관찰 결과:**
+- Finetuning 후 전반적인 선명도 향상
+- 에지 부분의 블러링 감소
+- 색상 재현성 개선
 
 ### 3.8 결론
 
 > **1 FPS SDK 스트리밍 입력 시 실시간 3D 재구성 가능**
-> - 처리 시간 400ms < 시간 예산 1000ms (60% 여유)
+> - 처리 시간 580ms < 시간 예산 1000ms (42% 여유)
 > - COLMAP 없이 MiniBA + Rig Constraint로 실시간 pose 추정
-> - Keyframe 기반 운영으로 1-6 FPS 재구성 가능
+> - Keyframe 기반 운영으로 **1.7 FPS** 재구성 달성
+> - Finetuning으로 **PSNR +0.69 dB** 품질 향상 가능
 
-### 3.9 참고 이미지
+### 3.9 실행 명령어
+
+```bash
+# 환경 설정
+source /home/kapr/miniconda3/etc/profile.d/conda.sh && conda activate onthefly_nvs
+cd /opt/ftp/files/260124/on-the-fly-nvs
+
+# 학습 + Finetuning
+python train.py \
+    --source_path /opt/ftp/files/260124/images_pinhole \
+    --rig_config /opt/ftp/files/260124/blender_rig.json \
+    --use_rig_constraint \
+    --save_at_finetune_epoch 1 2 3 \
+    --model_path /opt/ftp/files/260124/result/multicam_finetune \
+    --test_hold 8
+```
+
+### 3.10 참고 이미지
 
 **EQR → 9 Virtual Pinhole 변환**
 
