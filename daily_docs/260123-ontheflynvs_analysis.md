@@ -90,154 +90,91 @@ On-the-fly NVS는 **clone/split 없이** 다음 전략 사용:
 
 ---
 
-## 3. 실시간 파이프라인 설계 (최종 구현)
+## 3. 멀티뷰 Leveraging 실험 및 평가
 
-### 3.1 최종 구현 방식
+### 3.1 목표
+- **각 frame의 view에서 실시간 camera reconstruction을 leveraging 할 수 있는 방안**이 있는가?
 
-On-the-fly NVS를 Insta360 X5 Multi-Camera Rig에 적용한 **Rig-Constrained Pose Estimation** 방식:
+### 3.2 진행 방향
 
-> 현재 구현은 Insta360 SDK 실시간 스트리밍 대신, 260111에 녹화된 EQR mp4 파일(`saebit.mp4`)에서 추출한 이미지를 사용. 실제 배포 시 SDK 스트리밍으로 대체 예정.
+원칙을 다음과 같이 설정하고 실험을 진행함:
 
-1. **EQR 입력** → 녹화된 mp4에서 프레임 추출 (실배포: Insta360 SDK 실시간 스트리밍)
-2. **Virtual Pinhole 생성** → EQR → 9개 pinhole 이미지 변환 (GPU grid_sample)
-3. **Rig-Constrained BA** → Central camera (High_Cam08)만 최적화, 나머지는 상대 변환 적용
-4. **Gaussian Splatting** → Keyframe 기반 incremental reconstruction
-5. **Finetuning** → 전체 reconstruction 완료 후 추가 최적화
+1. **기본 루프는 Central-only** - 실시간성이 핵심이므로 비용이 큰 기능은 제외
+2. **Coverage는 조건부 보조 루프** - 맵 확장 기능, 항상 켜는 기능이 아님
+3. **멀티뷰의 목적은 포즈 안정화** - Central이 약할 때 다른 view가 보완
+4. **효율화는 camera subset 기반** - 모든 view를 매 프레임 사용하지 않음
 
-**핵심 구현 내용:**
-- `RigConstrainedPoseInitializer`: Central camera만 최적화 (최적화 변수 9배 감소)
-- `train_multicam()`: Multi-camera rig 전용 학습 루프
-- `--save_at_finetune_epoch`: Epoch별 finetuning 결과 저장
-
-### 3.2 파이프라인 타이밍
-
-```mermaid
-flowchart LR
-    subgraph Input ["입력 (6ms)"]
-        A[EQR Stream<br/>5ms] --> B[9 Pinhole<br/>1.1ms]
-    end
-
-    subgraph Pose ["포즈 추정 (44ms)"]
-        B --> C[Feature ×9<br/>25ms]
-        C --> D[Matching<br/>5ms]
-        D --> E[MiniBA Rig<br/>9ms]
-        E --> F[Triangulation<br/>5ms]
-    end
-
-    subgraph Gaussian ["가우시안 (530ms)"]
-        F --> G[Init + Opt<br/>530ms]
-    end
-
-    G --> H[Output]
+**실험 순서:**
+```
+Central-only Baseline → Coverage Extension → Multiview Pose Logging → Timing 분석
 ```
 
-**Total: ~580ms/keyframe (동기) → Keyframe 기반 1.7 FPS**
+### 3.3 실험 결과
 
-### 3.3 단계별 처리 시간 (RTX 4060 Ti 16GB 실측)
+#### 3.3.1 Central-only Baseline
+| 항목 | 결과 |
+|------|------|
+| Gaussians | 588,731 |
+| FPS | 1.691 |
+| Time | 27.2s |
+| PSNR | 18.197 |
+| SSIM | 0.587 |
+| LPIPS | 0.376 |
 
-| 단계 | 처리 시간 | 비고 |
-|------|----------|------|
-| SDK 수신 + 디코딩 | 5 ms | H.265 하드웨어 디코딩 |
-| EQR → Pinhole (9개) | 1.1 ms | GPU grid_sample |
-| XFeat 특징 추출 (×9) | 25 ms | 2.79ms × 9 카메라 |
-| Feature Matching | 5 ms | GPU 가속 |
-| MiniBA Bootstrap | 956 ms | 최초 8프레임만 |
-| MiniBA Incremental (Rig) | 9 ms | Central cam만 최적화 |
-| Triangulation | 5 ms | |
-| Gaussian Init + Opt | 530 ms | 30 iters 기준 |
-| **Total (Incremental)** | **~580 ms** | **1.7 FPS** |
-| Finetuning (per epoch) | 4,000 ms | 전체 keyframes 재학습 |
+![](../video_picture/260123/260123-colmap_gui_central_only.png)
 
-**실측 데이터 (46 frames → 42 keyframes):**
-- 전체 reconstruction: 26.8초 (1.71 FPS)
-- Finetuning 3 epochs: +12.3초 (4.1초/epoch)
+#### 3.3.2 Coverage Extension (멀티뷰로 맵 확장)
+| 항목 | Central-only | Coverage | 변화 |
+|------|--------------|----------|------|
+| Gaussians | 588,731 | 544,948 | -7.4% |
+| FPS | 1.691 | 0.761 | **-55%** |
+| Time | 27.2s | 60.5s | **+122%** |
+| PSNR | 18.197 | 15.551 | **-2.6 dB** |
+| SSIM | 0.587 | 0.492 | **-16%** |
+| LPIPS | 0.376 | 0.438 | **+16%** |
 
-### 3.4 Insta360 X5 맞춤 전략 (최종 채택: B)
+![](../video_picture/260123/260123-colmap_gui_central_only.png)
 
-| 전략 | 설명 | 채택 |
+**결과: 품질 악화, 속도 악화 - 완전 실패**
+
+#### 3.3.3 Multiview Pose Logging (포즈 안정화)
+- High_Cam07이 Central 실패 시 보조 가능 확인
+- 하지만 threshold 고정 재비교에서:
+  - rig pose: recovery gain **-48.03** (음수)
+  - 멀티뷰 추가 시 오히려 악화
+
+### 3.4 평가 - 증명 실패
+
+| 질문 | 결과 |
+|------|------|
+| EQR → Virtual Pinhole이 interactive time에 가능한가? | 가능함(1.1ms) |
+| 실시간 camera reconstruction이 가능한가? | 가능함(580ms (Central-only)) |
+| **멀티뷰가 실시간 reconstruction을 leverage할 수 있는가?** | **실패** |
+
+**멀티뷰 Leveraging 시도 결과**
+| 방법 | 의도 | 결과 |
 |------|------|------|
-| A: Sequential | 프레임별 9개 카메라를 하나로 취급, 중앙 카메라 pose 추정 | |
-| **B: Rig-Constrained** | **중앙 카메라만 최적화, 나머지는 상대 변환 적용 (변수 9배 감소)** | **✓** |
-| C: Multi-frame | Frame t + t+1의 18개 view로 triangulation (Baseline 확보) | |
+| Coverage Extension | 맵 확장 | 품질/속도 모두 악화 |
+| Multiview Pose | 포즈 안정화 | recovery gain 음수 |
 
-**360 카메라 특수성:**
-- 상대 pose 사전 정의 (blender_rig.json) → Calibration-free
-- Central camera: **High_Cam08 (315°)** - pairwise feature distance 합 최소
+### 3.5 의도와 결과의 차이
 
-### 3.5 실시간 가능성 평가
+**원래 의도**
+> 9개 카메라를 활용하여 실시간 3D 재구성의 품질 또는 안정성을 향상
 
-**실험 환경**: saebit.mp4 → 46 프레임 × 9 카메라 = 414 이미지, 960×960
+**실제 결과**
+> Central-only가 최선. 나머지 8개 카메라는 오히려 성능을 악화시킴.
 
-| 입력 FPS | 시간 예산 | 처리 시간 | 여유 | 실시간 여부 |
-|----------|----------|----------|------|------------|
-| **1 FPS** | 1000 ms | 580 ms | **420 ms** | 동기 처리 가능 |
-| 1.7 FPS | 580 ms | 580 ms | 0 ms | 한계점 |
-| 3 FPS | 333 ms | 580 ms | -247 ms | Async 필요 |
+**괴리 원인 : Rotation-only 데이터의 근본 한계 (추정)**
 
-### 3.6 정량적 평가 결과
+Insta360 X5의 9개 Virtual Pinhole 카메라는
+- **같은 위치**에서 **회전만 다름** (baseline ≈ 0)
+- 멀티뷰 기하학의 핵심인 **삼각측량 이득이 없음**
+- 동일 3D 점을 여러 각도에서 보지만, **깊이 추정에 기여하지 못함**
 
-**실험 설정:**
-- 입력: 46 frames (20프레임 간격 추출)
-- 테스트: test_hold=8 (6개 테스트 이미지)
-- Central camera: High_Cam08
-
-| 설정 | PSNR↑ | SSIM↑ | LPIPS↓ | Gaussians | 시간 |
-|------|-------|-------|--------|-----------|------|
-| Baseline | 17.29 | 0.548 | 0.397 | 594,354 | 26.8s |
-| +Finetune 1 epoch | 17.58 | 0.55 | 0.39 | 594,354 | 30.9s |
-| +Finetune 2 epochs | 17.81 | 0.56 | 0.39 | 594,354 | 35.0s |
-| **+Finetune 3 epochs** | **17.98** | **0.57** | **0.38** | 594,354 | 39.1s |
-
-**Finetuning 효과: PSNR +0.69 dB, SSIM +0.022, LPIPS -0.017**
-
-### 3.7 정성적 평가 결과
-
-> GT | Baseline (PSNR: 17.29) | Finetuned (PSNR: 17.98) 순서로 비교
-
-| Frame | 비교 (GT \| Baseline \| Finetuned) |
-|-------|-------------------------------------|
-| central_f0000 | <img src="../video_picture/260124/260124_compare_central_f0000.png" width="900"> |
-| central_f0008 | <img src="../video_picture/260124/260124_compare_central_f0008.png" width="900"> |
-| central_f0016 | <img src="../video_picture/260124/260124_compare_central_f0016.png" width="900"> |
-| central_f0024 | <img src="../video_picture/260124/260124_compare_central_f0024.png" width="900"> |
-| central_f0032 | <img src="../video_picture/260124/260124_compare_central_f0032.png" width="900"> |
-| central_f0040 | <img src="../video_picture/260124/260124_compare_central_f0040.png" width="900"> |
-
-**관찰 결과:**
-- Finetuning 후 전반적인 선명도 향상
-- 에지 부분의 블러링 감소
-- 색상 재현성 개선
-
-### 3.8 결론
-
-> **1 FPS SDK 스트리밍 입력 시 실시간 3D 재구성 가능**
-> - 처리 시간 580ms < 시간 예산 1000ms (42% 여유)
-> - COLMAP 없이 MiniBA + Rig Constraint로 실시간 pose 추정
-> - Keyframe 기반 운영으로 **1.7 FPS** 재구성 달성
-> - Finetuning으로 **PSNR +0.69 dB** 품질 향상 가능
-
-### 3.9 실행 명령어
-
-```bash
-# 환경 설정
-source /home/kapr/miniconda3/etc/profile.d/conda.sh && conda activate onthefly_nvs
-cd /opt/ftp/files/260124/on-the-fly-nvs
-
-# 학습 + Finetuning
-python train.py \
-    --source_path /opt/ftp/files/260124/images_pinhole \
-    --rig_config /opt/ftp/files/260124/blender_rig.json \
-    --use_rig_constraint \
-    --save_at_finetune_epoch 1 2 3 \
-    --model_path /opt/ftp/files/260124/result/multicam_finetune \
-    --test_hold 8
-```
-
-### 3.10 참고 이미지
-
-**EQR → 9 Virtual Pinhole 변환**
-
-<img src="../video_picture/260123/260123-demo_pinhole_grid.jpg" width="600">
+논문(arXiv:2512.08498)의 multi-camera rig는
+- 물리적으로 분리된 카메라들 (baseline 존재)
+- 멀티뷰가 깊이/표면 추정에 실제로 기여
 
 ---
 
