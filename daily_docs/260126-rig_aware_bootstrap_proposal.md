@@ -33,44 +33,34 @@
 
 ## 2. All-9-Cameras Bootstrap 설계
 
-### 2.1 Virtual Camera 패러다임
+### 2.1 핵심 아이디어
 
-**BundledSLAM (arXiv:2403.19886) 인용**
-> "We introduce the concept of representing multiple cameras with a virtual camera, achieving pose estimation for multiple camera systems using this approach."
-
-- 모든 물리적 카메라의 observations을 **central camera 좌표계**로 변환
-   - 현재 상태에서는 모든 pose들과 가장 거리의 합이 가까운 `High_Cam08`이 central camera임.
-- 각 카메라의 ray를 central 좌표계로 재투영
-- Central camera의 **8개 frame poses**를 최적화하는 BA 수행
+- 9개 카메라의 모든 observations 활용 (reprojection error 합산)
+- Central camera (`High_Cam08`) pose만 BA로 최적화
+- 나머지 카메라 pose는 rig constraint로 유도: `R_i = R_rel_i × R_central`
 
 ```mermaid
 flowchart LR
-    subgraph REAL["실제 카메라 관측"]
+    subgraph OBS["9개 카메라 Observations"]
         C0["cam0"]
         C1["cam1"]
         C2["..."]
         C8["cam8"]
     end
 
-    subgraph VIRTUAL["Central 좌표계 변환"]
-        V["ray_central = R_rel[i].T @ ray_cam"]
+    subgraph BA["Bundle Adjustment"]
+        E["Σ reprojection error"]
     end
 
-    subgraph BA["Multi-frame BA"]
-        P0["pose_0"]
-        P1["pose_1"]
-        P2["..."]
-        P7["pose_7"]
+    subgraph OUT["출력"]
+        P["Central pose × 8 frames"]
     end
 
-    C0 --> V
-    C1 --> V
-    C2 --> V
-    C8 --> V
-    V --> P0
-    V --> P1
-    V --> P2
-    V --> P7
+    C0 --> E
+    C1 --> E
+    C2 --> E
+    C8 --> E
+    E --> P
 ```
 
 ### 2.2 All-9-Cameras 접근법의 이점
@@ -80,19 +70,6 @@ flowchart LR
 | **정보 최대화** | central camera 대비 더 많은 observations |
 | **Robustness 향상** | 한 카메라의 bad feature가 전체에 영향 적음 |
 | **학술적 표준** | COLMAP, BundledSLAM 동일 접근법 |
-
-### 2.3 학술적 근거
-
-**BundledSLAM (arXiv:2403.19886)의 적용 근거**
-
-| BundledSLAM 특성 | 현재 상황 적합성 |
-|------------------|-----------------|
-| Virtual camera로 multi-cam 통합 | Rotation-only에도 적용 가능 |
-| 모든 카메라 observation 활용 | 정보량 9× 증가 |
-| Central 좌표계로 ray 재투영 | ray_central = R_rel[i].T @ ray_cam |
-
-**MultiCol Bundle Adjustment (IJCV 2016)**
-> "We extend the common collinearity equations with a general camera model and include the relative orientation of each camera w.r.t to the fixed multi-camera system frame."
 
 ---
 
@@ -104,7 +81,7 @@ flowchart LR
 |-------|------|------|------|
 | 1 | EQR 8K | 9개 pinhole 변환 | 960×960 × 9 |
 | 2 | 9 images | Feature extraction (XFeat) | 9 × DescribedKeypoints |
-| 3 | 9 cams × 8 frames | Virtual Camera Bootstrap | 8 central poses |
+| 3 | 9 cams × 8 frames | All-9-Cameras Bootstrap | 8 central poses |
 | 4 | New frame | All-cam PnP → Central pose | Central pose |
 | 5 | Central keyframes | 3DGS optimization | Rendered view |
 
@@ -135,7 +112,7 @@ flowchart TD
 ## 4. 참고문헌
 
 1. **BundledSLAM** (arXiv:2403.19886)
-   - Virtual camera 개념
+   - Multi-camera pose estimation
    - https://arxiv.org/abs/2403.19886
 
 2. **MultiCol Bundle Adjustment** (IJCV 2016)
