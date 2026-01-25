@@ -42,9 +42,34 @@
 - 각 카메라의 ray를 central 좌표계로 재투영
 - Central camera의 **8개 frame poses**를 최적화하는 BA 수행
 
-```
-실제 카메라 관측     →    Central 좌표계로 변환    →    Multi-frame BA
-[cam0, cam1, ..., cam8]     [all in central frame]     [8 central poses]
+```mermaid
+flowchart LR
+    subgraph REAL["실제 카메라 관측"]
+        C0["cam0"]
+        C1["cam1"]
+        C2["..."]
+        C8["cam8"]
+    end
+
+    subgraph VIRTUAL["Central 좌표계 변환"]
+        V["ray_central = R_rel[i].T @ ray_cam"]
+    end
+
+    subgraph BA["Multi-frame BA"]
+        P0["pose_0"]
+        P1["pose_1"]
+        P2["..."]
+        P7["pose_7"]
+    end
+
+    C0 --> V
+    C1 --> V
+    C2 --> V
+    C8 --> V
+    V --> P0
+    V --> P1
+    V --> P2
+    V --> P7
 ```
 
 ### 2.2 All-9-Cameras 접근법의 이점
