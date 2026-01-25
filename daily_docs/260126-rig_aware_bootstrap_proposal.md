@@ -39,6 +39,7 @@
 > "We introduce the concept of representing multiple cameras with a virtual camera, achieving pose estimation for multiple camera systems using this approach."
 
 - 모든 물리적 카메라의 observations을 **central camera 좌표계**로 변환
+   - 현재 상태에서는 모든 pose들과 가장 거리의 합이 가까운 `High_Cam08`이 central camera임.
 - 각 카메라의 ray를 central 좌표계로 재투영
 - Central camera의 **8개 frame poses**를 최적화하는 BA 수행
 
@@ -76,9 +77,8 @@ flowchart LR
 
 | 이점 | 설명 |
 |------|------|
-| **정보 최대화** | 9배 더 많은 observations |
+| **정보 최대화** | central camera 대비 더 많은 observations |
 | **Robustness 향상** | 한 카메라의 bad feature가 전체에 영향 적음 |
-| **Coverage 확대** | 360° 전체 관측 |
 | **학술적 표준** | COLMAP, BundledSLAM 동일 접근법 |
 
 ### 2.3 학술적 근거
@@ -114,26 +114,20 @@ flowchart LR
 flowchart TD
     INPUT["Insta360 X5 EQR Video Stream"]
 
-    S1["Stage 1: EQR → Pinhole 변환<br/>• blender_rig.json rotation으로 sampling<br/>• 9개 pinhole 이미지 (960×960, FOV 90°)"]
-
-    S2["Stage 2: Feature Extraction<br/>• 각 카메라별 keypoints 추출 (XFeat)<br/>• Output: 9 × DescribedKeypoints"]
-
-    S3["Stage 3: All-9-Cameras Bootstrap<br/>• 각 카메라별 temporal correspondences<br/>• Virtual Camera 변환 (ray_cam → ray_central)<br/>• 통합 BA → 8개 central poses"]
-
-    S4["Stage 4: Incremental Phase<br/>• 9개 카메라에서 2D-3D correspondences<br/>• Virtual camera 변환 후 PnP-RANSAC<br/>• Rig-Constrained MiniBA"]
-
-    S5["Stage 5: 3D Gaussian Splatting<br/>• Central camera keyframe 사용<br/>• Photometric loss 최적화"]
+    S1["Stage 1: EQR → Pinhole 변환"]
+    S2["Stage 2: Feature Extraction (XFeat)"]
+    S3["Stage 3: Bootstrap BA<br/>(8 frames → 8 central poses)"]
+    S4["Stage 4: Incremental PnP + MiniBA"]
+    S5["Stage 5: 3DGS Optimization"]
 
     OUTPUT["Rendered Novel View"]
 
-    INPUT --> S1
-    S1 --> S2
-    S2 --> S3
+    INPUT --> S1 --> S2
+    S2 -->|"frame 0-7"| S3
     S3 --> S4
-    S4 --> S5
-    S5 --> OUTPUT
-
-    S4 -.->|"new frame"| S4
+    S2 -->|"frame 8+"| S4
+    S4 --> S5 --> OUTPUT
+    OUTPUT -.->|"next frame"| INPUT
 ```
 
 ---
