@@ -65,11 +65,9 @@ flowchart TD
     NOTE -.- param
 ```
 
-bake-in 결과와 nn.Parameter가 구조적으로 분리되어 있음. 이 특성이 aux camera depth alignment 시 문제를 일으켰음 (Part 2 참조).
+`align_depth()`는 fitting된 s, o를 `mono_idepth` 텐서에 직접 곱/더하기로 반영(bake-in)하지만, `depth_scale`/`depth_offset` nn.Parameter는 건드리지 않음. 즉 bake-in 후에도 nn.Parameter는 초기값(1.0, 0.0)을 유지함. 이 분리가 aux camera depth alignment 시 문제를 일으켰음 (Part 2 참조).
 
 ### 1.5 논문 rig vs 현재 데이터
-
-현재 데이터는 Insta360 X5 360 영상을 Blender 360 Extractor로 5개 virtual pinhole camera로 추출한 것임. 논문의 물리적 rig과 근본적으로 다름.
 
 | 항목 | 논문 ([arXiv:2512.08498](https://arxiv.org/pdf/2512.08498)) | 현재 데이터 |
 |------|------------------------|------------|
@@ -80,7 +78,7 @@ bake-in 결과와 nn.Parameter가 구조적으로 분리되어 있음. 이 특�
 | 카메라 수 | 3~9대 | 5대 (High_Cam06/07/08, Low_Cam07/08) |
 | Focal length | miniBA에서 최적화 | 480.0 고정 |
 
-rotation-only rig이므로 baseline ≈ 0이고, 동일 프레임 내 카메라 간 삼각측량이 불가능함. temporal baseline(촬영자 보행)에만 의존함.
+5대 가상 카메라가 동일 좌표에서 회전만 다르므로, 동일 프레임 내 카메라 간에는 시각차(parallax)가 없음. 삼각측량에는 시각차가 필수이므로 동일 프레임 내 카메라 간 삼각측량은 불가능하고, 촬영자 보행으로 인한 temporal baseline에만 의존함.
 
 ---
 
@@ -121,10 +119,14 @@ flowchart TD
 | Optimization loss | ref 1-cam photometric loss | 5-cam photometric loss (L1 + SSIM) |
 | Gaussian spawn | ref camera만 | ref + aux 4대 (KF 8~ 활성화) |
 | Aux depth alignment | 해당 없음 | per-camera reprojection fitting |
+- ref camera : 중심 카메라 pose
+- aux camera : 중심 카메라를 제외한 나머지 카메라 pose
 
 ### 2.2 Aux Gaussian Spawning
 
-aux camera 4대(High_Cam06/08, Low_Cam07/08)에서 Gaussian을 추가 spawn함. `multiview_spawn_warmup=8` 이후(KF 8~)부터 활성화됨. bootstrap 구간에서는 pose가 불안정해서 비활성화한 것임.
+aux camera 4대(High_Cam06/08, Low_Cam07/08)에서 Gaussian을 추가 spawn함. `multiview_spawn_warmup=8` 이후(KF 8~)부터 활성화됨.
+
+bootstrap 구간(KF 0~7)에서는 GS scene이 아직 초기화 단계라 rendered_invdepth가 부정확하고, reproj fitting의 기준이 되는 ref rendered depth 자체가 신뢰 불가하므로 비활성화함.
 
 aux camera는 ref와 optical center가 같으므로(rotation-only rig) guided MVS를 쓸 수 없음. mono depth만 사용함.
 
@@ -155,13 +157,14 @@ flowchart TD
     reproj --> fit --> check
 ```
 
-safety check를 통과하지 못하면 해당 camera/KF에서는 spawn하지 않음. 이 skip 메커니즘이 불확실한 fitting을 자연 차단해서 잘못된 Gaussian이 대량 생성되는 것을 방지함.
+safety check 조건 하나라도 실패하면 해당 camera/KF skip함.
 
-이 방식에 도달하기까지 두 번의 시행착오가 있었음:
-1. **첫 시도**: aux에 depth_scale/depth_offset nn.Parameter를 그대로 읽었는데, bake-in과 분리된 구조 때문에 초기값(1.0, 0.0) 그대로 적용되어 사실상 정렬이 안 되었음
-2. **두 번째 시도**: ref의 fitted scale/offset을 aux에 공유했는데, Depth-Anything-V2의 per-image normalization이 카메라마다 달라서 pixel-wise depth가 부정확해짐. 필터 통과율이 급증하면서 잘못된 위치에 ~120K개가 spawn되어 오히려 PSNR이 -0.86 악화되었음
+| 조건 | 의미 |
+|------|------|
+| pairs < 500 | 대응점 부족 → fitting 불안정 |
+| a ≤ 0 | mono↔render 간 양의 상관 없음 |
+| nonpos_ratio ≥ 0.3 | aligned_idepth ≤ 0 pixel이 30% 이상 → depth 무한대/음수 |
 
-per-camera reprojection fitting은 카메라별로 독립된 (a, b)를 추정하므로 이 문제가 해소되었음.
 
 ---
 
@@ -177,9 +180,11 @@ per-camera reprojection fitting은 카메라별로 독립된 (a, b)를 추정하
 | Gaussians | 740,626 | 720,861 |
 | Time (s) | 28.60 | 129.34 |
 
-시간이 28s → 129s로 늘어난 건 5-cam rendering + aux depth fitting + aux spawning 오버헤드 때문임.
+시간이 28s → 129s로 늘어난 이유 : 5-cam rendering + aux depth fitting + aux spawning 오버헤드 때문
 
 ### 3.2 Per-Camera Fitting 통계
+
+<img src="../video_picture/260131/per_camera_fitting_stats.png" width="900">
 
 | Camera | 성공/전체 | skip률 | a (median±std) | b (median±std) | pairs (median) | 총 spawned |
 |--------|---------|--------|---------------|---------------|---------------|-----------|
@@ -188,17 +193,11 @@ per-camera reprojection fitting은 카메라별로 독립된 (a, b)를 추정하
 | Low_Cam07 | 19/26 | 27% | 0.512±0.198 | 1.584±0.305 | 1,581 | 19,000 |
 | Low_Cam08 | 17/25 | 32% | 0.457±0.332 | 1.455±0.395 | 3,841 | 17,000 |
 
-- a 값이 카메라마다 0.245~0.512로 다름. shared fitting이 부적절했다는 가설이 수치로 확인되었음.
-- High_Cam06은 skip률 62%로 가장 높았음. 좌측 45° 시야가 GS scene coverage와 가장 적게 겹쳐서 pair가 500 미만인 KF가 많았음.
-- High_Cam08은 14% skip으로 안정적이었음. 촬영 궤적상 우측 방향 노출이 더 많았기 때문으로 추정됨.
-- 성공한 fitting에서는 nonpos_ratio가 전부 0.0000이었음.
-- 총 63K spawn으로 B3-fix ~120K 대비 절반임.
+a 값이 카메라마다 0.245~0.512로 다르므로, shared fitting이 부적절했다는 가설이 수치로 확인됨. 총 63K spawn으로 두 번째 시도(shared fitting, ~120K)의 절반이며, skip 메커니즘이 불확실한 fitting을 차단한 결과임.
 
 ### 3.3 정성적 비교: GT vs 최종 렌더링
 
-KF→frame 매핑은 `metadata.json`의 keyframes 배열 인덱스 기준임.
-
-#### KF 0 (frame_00001.png)
+#### frame_00001
 
 | Camera | GT | Render |
 |--------|----|----|
@@ -208,7 +207,7 @@ KF→frame 매핑은 `metadata.json`의 keyframes 배열 인덱스 기준임.
 | Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf000_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam07.png" width="400"> |
 | Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf000_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam08.png" width="400"> |
 
-#### KF 10 (frame_00301.png)
+#### frame_00301
 
 | Camera | GT | Render |
 |--------|----|----|
@@ -218,7 +217,7 @@ KF→frame 매핑은 `metadata.json`의 keyframes 배열 인덱스 기준임.
 | Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf010_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam07.png" width="400"> |
 | Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf010_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam08.png" width="400"> |
 
-#### KF 20 (frame_00521.png)
+#### frame_00521
 
 | Camera | GT | Render |
 |--------|----|----|
@@ -228,7 +227,7 @@ KF→frame 매핑은 `metadata.json`의 keyframes 배열 인덱스 기준임.
 | Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf020_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam07.png" width="400"> |
 | Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf020_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam08.png" width="400"> |
 
-#### KF 30 (frame_00721.png)
+#### frame_00721
 
 | Camera | GT | Render |
 |--------|----|----|
