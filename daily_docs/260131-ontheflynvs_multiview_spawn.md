@@ -126,7 +126,7 @@ flowchart TD
 
 aux camera 4대(High_Cam06/08, Low_Cam07/08)에서 Gaussian을 추가 spawn함. `multiview_spawn_warmup=8` 이후(KF 8~)부터 활성화됨.
 
-bootstrap 구간(KF 0~7)에서는 GS scene이 아직 초기화 단계라 rendered_invdepth가 부정확하고, reproj fitting의 기준이 되는 ref rendered depth 자체가 신뢰 불가하므로 비활성화함.
+bootstrap 구간(KF 0~7)에서는 비활성화함. 근본 원인은 GS scene이 초기화 단계라 ref rendered depth가 부정확하기 때문이며, reproj fitting이 이 depth를 기준으로 대응점을 수집하므로 fitting 결과도 신뢰할 수 없음.
 
 aux camera는 ref와 optical center가 같으므로(rotation-only rig) guided MVS를 쓸 수 없음. mono depth만 사용함.
 
@@ -193,7 +193,7 @@ safety check 조건 하나라도 실패하면 해당 camera/KF skip함.
 | Low_Cam07 | 19/26 | 27% | 0.512±0.198 | 1.584±0.305 | 1,581 | 19,000 |
 | Low_Cam08 | 17/25 | 32% | 0.457±0.332 | 1.455±0.395 | 3,841 | 17,000 |
 
-a 값이 카메라마다 0.245~0.512로 다르므로, shared fitting이 부적절했다는 가설이 수치로 확인됨. 총 63K spawn으로 두 번째 시도(shared fitting, ~120K)의 절반이며, skip 메커니즘이 불확실한 fitting을 차단한 결과임.
+a 값이 카메라마다 0.245~0.512로 다르므로 per-camera 독립 fitting이 필요했음을 수치로 확인함. 총 63K spawn이며, safety check의 skip 메커니즘이 fitting 불안정 케이스를 차단함. 통계의 a/b/pairs median은 성공한 KF만의 중앙값이며 skip된 KF는 제외됨.
 
 ### 3.3 정성적 비교: GT vs 최종 렌더링
 
