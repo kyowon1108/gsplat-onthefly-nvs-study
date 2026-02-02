@@ -177,6 +177,45 @@ safety check 조건 하나라도 실패하면 해당 camera/KF skip함.
 | nonpos_ratio ≥ 0.3 | aligned_idepth ≤ 0 pixel이 30% 이상 → depth 무한대/음수 |
 
 
+### 2.4 Depth Alignment 진단 패널 (KF 10, High_Cam08)
+
+`add_new_gaussians_aux()` 내부 6단계를 한 장에 보여주는 debug 시각화. `--debug_kf 10 --debug_cam High_Cam08`로 생성함.
+
+<img src="../video_picture/260131/debug_kf010_High_Cam08.png" width="1100">
+
+#### 패널별 설명
+
+**(A) GT RGB** — High_Cam08(ref 대비 우 45°)이 촬영한 ground truth 이미지. 이후 모든 패널의 입력 원본.
+
+**(B) Mono inv-depth (raw)** — Depth-Anything-V2가 (A)에서 추정한 raw inverse depth. 상대 스케일만 있고 절대 스케일이 없으므로, 이 값을 직접 쓰면 Gaussian depth가 틀림. 이것을 ref 스케일로 변환하는 게 (D)→(E) 과정.
+
+**(C) Rendered inv-depth (GS)** — 기존 Gaussian scene을 High_Cam08 시점에서 렌더링한 inverse depth. 검정 영역은 Gaussian이 없는 곳.
+- `valid=436,806/921,600 (47.4%)` : 전체 픽셀의 절반 미만만 유효한 rendered depth를 가짐
+- `sampled=2,917` : valid 픽셀에서 5,000개를 샘플링 시도했으나 ref view 범위 안에 떨어지는 쌍은 2,917개
+- coverage가 낮을수록 (D)에서 쓸 수 있는 pair 수가 줄고 outlier 비율이 올라감
+
+**(D) Hexbin density + fitted line** — (B)의 aux mono idepth(x축)와 ref aligned idepth를 reprojection으로 대응시킨 쌍(y축)의 밀도 분포.
+- `pairs=2917` : 유효 대응 쌍 수. safety check 기준(500) 통과
+- `inlier=0.027` : Huber δ=0.01 기준 inlier 비율 2.7%. 수치만 보면 낮지만, hexbin에서 밝은(=밀도 높은) 영역이 fitted line(`y=0.6341x+1.2204`, cyan) 위에 집중되어 있음. Huber fitting은 이 dense core만으로 (a, b)를 결정하고 나머지 outlier는 가중치를 줄여 무시함
+- outlier 원인: (C)에서 보이듯 coverage 47%만 유효하여, 빈 영역 경계의 부정확한 rendered depth가 잘못된 reprojection pair를 만듦
+
+**(E) Aligned idepth + residual histogram** — (B)에 fitted affine `0.6341x + 1.2204`를 적용한 결과. ref와 동일한 절대 스케일의 inverse depth.
+- `nonpos=0.000` : aligned_idepth ≤ 0인 픽셀 0%. safety check 기준(30%) 통과
+- 우하단 inset: fitting residual(`a*x + b - y`) 분포. `med|r|=0.4291`이고 0 근처에 sharp peak 존재. peak은 fitting이 잘 된 pair, long tail은 (D)에서 Huber가 다운웨이트한 outlier
+
+**(F) Spawn candidates** — (A) 위에 최종 spawn 위치를 초록 점으로 표시.
+- 회색 반투명 = Laplacian sampling mask (텍스처 경계에서 높은 확률)
+- 초록 점 1,000개 = confidence > 0.3 필터 + occlusion check + budget 1,000/cam 적용 후 살아남은 최종 Gaussian 생성 위치
+- 나무 경계, 건물 윤곽 등 텍스처가 강한 곳에 집중됨
+
+#### 파이프라인 연쇄 관계
+
+```
+(B) raw mono → (C) rendered depth에서 pair 추출 → (D) affine fitting → (E) 스케일 정렬 → (F) spawn
+```
+
+(C)의 coverage가 부족하면 → (D)의 pair quality가 떨어지고 → (D)의 fitting이 나쁘면 → (E)가 틀어지고 → (F)에서 잘못된 위치에 Gaussian이 생김. 이 KF에서는 coverage 47%에도 dense core가 선형 관계를 유지하여 fitting이 정상 작동함.
+
 ---
 
 ## 3. 평가
