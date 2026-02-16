@@ -2,7 +2,7 @@
 
 ## 0. SfM 처리 시간 비교(별도 참고)
 
-이 섹션은 260205 비교 문서 기준의 시간 비교 참고용임.  
+이 섹션은 260205 비교 문서 기준의 시간 비교 참고용  
 
 | 단계 | On-the-fly | COLMAP Rig SfM |
 |---|---:|---:|
@@ -17,14 +17,14 @@
 ## 1. 목적
 
 260131 데이터/설정으로 정의한 운영 기준(통과율 `9/12`, fallback 기준 `0.35`)이 재실행에서도 유지되는지 확인함.
-R1은 rotation-only 가정 위반 조건(`translation perturbation`)에서 경계가 어디서 깨지는지 확인하는 항목임.
-R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 보조 시점 품질 유지 여부를 확인하는 항목임.
+R1은 rotation-only 가정 위반 조건(`translation perturbation`)에서 민감도를 보는 항목이며, EQR→pinhole 데이터의 rotation-only 전제 정합성을 간접 점검하는 용도로 해석함.
+R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 보조 시점 품질 유지 여부를 확인하는 항목.
 
 ## 2. 확인 질문(R1/R2/R3)
 
 | 항목 | 무엇을 틀어 확인했는지 | 확인 이유 |
 |---|---|---|
-| R1. 회전 민감도 | `translation perturbation`(0.0/0.5/1.0/2.0%) 주입 | rotation-only 가정 위반 시 `fallback_triggered_rate`가 기준 `0.35`를 초과하는지 확인하기 위함임 |
+| R1. 회전 민감도 | `translation perturbation`(0.0/0.5/1.0/2.0%) 주입 | rotation-only 가정 위반 시 `fallback_triggered_rate` 초과 여부를 확인하고, 데이터 전제 정합성을 간접 점검하기 위함임 |
 | R2. 보조 포즈 경로 안정성 | 경로 A/B(`detach=true/false`) 변경 | 경로 변경 시 `nan_detected` 발생 또는 학습 중단 여부를 확인하기 위함임 |
 | R3. 보조 시점 화질 유지 | 기준설정 단계에서 산출한 하한을 기준적용 단계에 고정 적용 | 기준적용 단계에서도 통과율 기준(`>=75%`)을 유지하는지 확인하기 위함임 |
 
@@ -79,31 +79,61 @@ flowchart LR
 |---|---|---|---|
 | R1. 회전 민감도 | 통과율 `9/12`, fallback 기준 `0.35` | 통과율 `6/12`, 실패 6건 모두 `propagation_C=Fail`, 실패 run fallback `0.3628~0.4804` | 미충족 |
 | R2. 보조 포즈 경로 안정성 | winner variant에서 `nan_detected=False` | pilot은 A/B 모두 `nan_detected=False`; operational은 `A(seed0)=True`, B는 `3/3` 모두 False, winner `A->B` 변경 | 충족(러너 기준) |
-| R3. 보조 시점 화질 유지 | 통과율 `>=75%`, `mean>=11.0714`, `min_cam>=10.0714`, `gap<=3.6314` | 기준설정 `15/15`, 기준적용 `13/15` (실패 2건: `rotation_S4_seed2`=mean/min_cam/gap 동시 미달, `pose_path_varB_seed2`=min_cam 미달) | 충족 |
+| R3. 보조 시점 화질 유지 | 통과율 `>=75%`, `mean>=11.0714`, `min_cam>=10.0714`, `gap<=3.6314` | 기준설정 `15/15`, 기준적용 `13/15` (실패 2건, 세부 원인 4.3절) | 충족 |
 
 - fallback 기준 `0.35`는 실행 중 추정값이 아니라 `validation_protocol`에 고정된 운영 기준값임.
+- fallback 기준 `0.35`의 근거는 `validation_protocol.yaml`의 `gates.fallback_triggered_gate=0.35`임. pilot/operational `manifest.txt`에 동일 값으로 기록됨.
 - 기준설정 `15/15`는 pilot 집계 규칙(유효 aux row를 pass로 집계) 결과임. 기준적용 `13/15`는 고정 하한을 적용한 실제 pass count임.
 - R1 `pass_fail`은 `geom_A + quality_B + propagation_C` 동시 충족 기준임. 운영 실패 6건은 모두 `propagation_C` 미충족으로 발생함.
-
-최종 판정은 Hold임.
 
 ### 4.2 정성 평가
 
 | 관측 원천 | 관측 내용 | 의미 |
 |---|---|---|
 | 운영 로그 | 실패 6 run 로그에서 `FALLBACK (skip): only ... pairs < 500`가 관측됨 | 대응쌍 부족이 fallback 발생 조건으로 기록됨 |
-| 운영 `r1_summary.csv` | Fail 6건 모두 `propagation_C=Fail`; 실패 run `fallback_triggered_rate=0.3628~0.4804` 관측됨 | R1 미충족의 직접 원인이 `fallback_triggered_rate > 0.35`임을 보여줌 |
+| 운영 `r1_summary.csv` | 모든 Fail run이 `propagation_C=Fail`로 기록됨 | R1 미충족의 직접 원인이 propagation 조건 미충족임을 보여줌 |
 
 카메라별 fitting/skip 통계(260131):
 
 <img src="../video_picture/260131/per_camera_fitting_stats.png" width="1000">
 
+### 4.3 R3 실패 2건 원인 분해(재현성 관점)
+
+| 실패 run | 하한 미달 항목 | 관측값 | 해석 |
+|---|---|---|---|
+| `rotation_S4_seed2` | mean/min_cam/gap 동시 미달 | `mean=10.4897`, `min_cam=9.1529`, `gap=4.2458` | 보조 시점 화질이 전체적으로 내려간 케이스임. 단일 카메라 저하가 아니라 다중 지표 동시 붕괴임 |
+| `pose_path_varB_seed2` | min_cam만 미달 | `mean=11.5265`, `min_cam=9.4249`, `gap=2.7659` | 전체 평균은 유지됐지만 특정 카메라 하한만 깨진 케이스임 |
+
+- 실패 2건이 모두 `seed=2`에서 발생했으므로 seed 민감 재현성 리스크가 존재함.
+- 동일 실패가 아님. 하나는 전체 화질 저하형, 하나는 특정 카메라 하한 저하형임.
+
+### 4.4 R1 해석 프레임(운영 vs 전제 점검)
+
+| 해석 관점 | 질문 | 현재 결과 해석 |
+|---|---|---|
+| 운영 게이트 관점 | 현재 프로세스를 바로 운영 가능한가 | 4.1의 R1 결과가 운영 기준 미달이므로 Hold 해석이 타당함 |
+| rotation-only 전제 점검 관점 | 가정을 깨면 성능 저하가 뚜렷한가 | 가정 위반 입력에서 `fallback_triggered_rate` 초과 Fail이 반복되어 민감도 신호로 해석 가능함 |
+
+- 위 2개 관점은 충돌하지 않음. 운영 판정은 Hold로 유지하고, R1 결과는 전제 점검의 간접 근거로 병행 해석함.
+- 단, R1 단독으로 “데이터가 절대적으로 rotation-only임”을 증명하는 것은 아님.
+
 ## 5. 결론
 
 | 의도한 부분 | 나온 결과 | 해석 |
 |---|---|---|
-| R1: 가정 위반 조건에서 fallback 급증 여부를 확인함 | 통과율 `6/12`로 기준 `9/12` 미달, 실패 6건 모두 `propagation_C=Fail`, 실패 run fallback `0.3628~0.4804`로 기준 `0.35` 초과함 | R1 판정식(`geom_A+quality_B+propagation_C`)에서 미충족 원인은 `propagation_C`임. rotation-only 경계를 넘기면 운영 기준이 깨짐을 확인함 |
+| R1: 가정 위반 조건에서 fallback 급증 여부를 확인함 | 4.1의 R1 정량 결과에서 운영 기준 미충족이 확인됨 | 운영 게이트 관점에서는 Hold 근거임. 동시에 rotation-only 가정 위반에 민감하다는 간접 신호로 해석 가능함. 단, 데이터 전제 증명은 별도 baseline 검증이 필요함 |
 | R2: 보조 포즈 경로가 발산 없이 유지되는지 확인함 | pilot은 A/B 모두 `nan_detected=False`; operational은 `A(seed0)=True`, B는 `3/3` 모두 False, winner `A->B` 변경됨 | winner가 B이고 B에서 NaN이 없으므로 runner gate 기준(`winner_stable`)은 충족함 |
-| R3: 보조 시점 화질 하한이 운영 단계에서도 유지되는지 확인함 | 기준설정 `15/15`, 기준적용 `13/15`; 하한은 `mean>=11.0714`, `min_cam>=10.0714`, `gap<=3.6314`로 적용됨 | 운영 단계에서도 R3 기준은 충족함. 실패 2건은 `rotation_S4_seed2`(mean/min_cam/gap 동시 미달), `pose_path_varB_seed2`(min_cam 미달)임 |
-| 최종 운영 가능 여부를 판정함 | 최종 판정 Hold임 | Hold의 직접 원인은 R1 미충족임. 다음 실험은 `aux_fit_min_pairs` 민감도, fallback 경로(`skip` vs `homography_low`) 비교, `High_Cam06` 집중 분석 3개로 고정함 |
+| R3: 보조 시점 화질 하한이 운영 단계에서도 유지되는지 확인함 | 기준설정 `15/15`, 기준적용 `13/15`; 실패 2건 세부 유형은 4.3절에 정리됨 | 운영 단계에서도 R3 gate는 충족함 |
+| 최종 운영 가능 여부를 판정함 | 최종 판정 Hold임 | Hold의 직접 원인은 R1 미충족임. 다음 실험 3개의 실행 변수와 판정 기준은 6절에 고정함 |
 
+## 6. 다음 실험 3개(구체 실행안)
+
+| 실험 | 고정 조건 | 변경 변수 | 관측 지표 | 종료/판정 기준 |
+|---|---|---|---|---|
+| `aux_fit_min_pairs` 민감도 | 현재 operational 설정, seed `0/1/2`, perturb `0.0/0.5/1.0/2.0%` | `aux_fit_min_pairs = 400/500/600/700` | `R1 pass_count/12`, `fallback_triggered_rate`(12 run 전체), R2/R3 gate | `R1 pass_count >= 9/12`, 12개 run 모두 `fallback_triggered_rate <= 0.35`, R2 gate=Pass, R3 gate=Pass를 동시에 만족하면 통과함 |
+| fallback 경로 비교 | 위와 동일 | `aux_fit_fallback = skip` vs `homography_low` | `R1 pass_count/12`, `R3 pass_count/15`, `VIEW_GAP_PSNR`, 총 처리 시간 | baseline(`R1=6/12`, `R3=13/15`) 대비 `R1 pass_count`가 `+2` 이상 증가하고, `R3 pass_count`가 13/15 미만으로 하락하지 않으며, 총 처리 시간 증가가 20% 이내인 경로를 채택함 |
+| `High_Cam06` 집중 분석 | 위와 동일 | 카메라 그룹 `full`, `without_High_Cam06`, `only_High_Cam06` | 카메라별 `pairs<500` 빈도, `fallback_triggered_rate`, `min_cam`, `R1 pass_count/12`, `R3 fail_count` | `without_High_Cam06`에서 `R1 pass_count`가 full 대비 `+2` 이상 증가하거나 `R3 fail_count`가 full 대비 1건 이상 감소하면 High_Cam06 병목으로 확정함 |
+
+## 7. 기준 시점
+
+본 문서 수치는 `/docs/validation_results`(pilot/operational) 및 현재 코드 HEAD(`2cd1a3a`) 기준임.
