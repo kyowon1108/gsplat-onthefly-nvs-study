@@ -8,7 +8,7 @@
 
 **목표**: 360도 카메라(Insta360 X5)와 COLMAP Rig 기반 SfM을 활용하여 3D Gaussian Splatting 품질을 향상시키는 파이프라인 구축
 
-**현재 진행 상황**: Phase 5 - Rig SfM 적용 후 3DGS 학습 품질 검증 완료
+**현재 진행 상황**: Phase 6 - On-the-fly NVS Multi-Camera Rig 지원 구현 및 실험 완료
 
 ---
 
@@ -23,6 +23,7 @@
 | 3 | 11/5 ~ 11/18 | Insta360 X5 360도 카메라 실험, Rig 기반 재구성 |
 | 4 | 11/18 ~ 12/2 | 좌표계 변환(Blender→COLMAP), 자동화 파이프라인 |
 | 5 | 12/23 ~ 1/13 | Rig SfM 비교 실험, 3DGS 품질 검증 |
+| 6 | 1/19 ~ | On-the-fly NVS Multi-Camera Rig 구현, 주파수 스케줄러 적용 |
 
 ---
 
@@ -34,6 +35,7 @@
 | Rig SfM 효과 | 3D 포인트 +35%, Observations +119% |
 | Rig → 3DGS | PSNR +1.24dB, SSIM +0.067, LPIPS -0.072 |
 | 360도 카메라 | 수평 Coverage 우수, 수직 Coverage 한계 |
+| On-the-fly NVS (Rig) | PSNR 20.39dB, 전체 파이프라인 14.6분, Peak GPU 9.8GB |
 
 ---
 
