@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "paper-search": {
+      "command": "uvx",
+      "args": ["paper-search-mcp"]
+    },
+    "deep-research": {
+      "command": "python3",
+      "args": ["/Users/kapr/.claude/mcp-servers/Claude-Deep-Research/deep_research.py"]
+    },
+    "markdownify": {
+      "command": "node",
+      "args": ["/Users/kapr/.claude/mcp-servers/markdownify-mcp/dist/index.js"],
+      "env": {
+        "UV_PATH": "/opt/homebrew/bin/uv"
+      }
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "/Users/kapr/.claude/mcp-servers/data/research.sqlite"]
+    },
+    "duckdb": {
+      "command": "uvx",
+      "args": ["mcp-server-motherduck", "--db-path", "/Users/kapr/.claude/mcp-servers/data/research.duckdb", "--read-write"]
+    },
+    "excel": {
+      "command": "npx",
+      "args": ["--yes", "@negokaz/excel-mcp-server"]
+    }
+  }
+}

@@ -48,17 +48,12 @@
 
 ---
 
-## 핵심 인사이트
+## Phase 6: On-the-fly NVS Multi-Camera Rig (1/19 ~)
 
-| 발견 | 내용 |
-|------|------|
-| 품질 영향 순서 | 조명 > 해상도 > 카메라 파라미터 |
-| View Coverage | Point Cloud 개수보다 중요 |
-| Rig 기반 재구성 | 개별 카메라 재구성보다 우수 |
-| 360도 카메라 | 수평 Coverage 강점, 수직 한계 |
-| Rig SfM 효과 | 3D 포인트 +35%, Observations +119%, Track 길이 +62% |
-| Rig SfM 비용 | 수행 시간 약 2.3배 증가 (trade-off) |
-| Rig → 3DGS 품질 | PSNR +1.24dB, SSIM +0.067, LPIPS -0.072 |
+- [260119-search_rig_ontheflynvs.md](daily_docs/260119-search_rig_ontheflynvs.md) - On-the-fly NVS에 9카메라 Rig 지원 구현, Inter-camera redundancy 제거, 주파수 스케줄러 적용
+- [260123-ontheflynvs_analysis.md](daily_docs/260123-ontheflynvs_analysis.md) - Ablation Study (핵심 기법 기여도 분석), 실시간 스트리밍 아키텍처 설계
+- [260126-rig_aware_bootstrap_proposal.md](daily_docs/260126-rig_aware_bootstrap_proposal.md) - Rotation-only Rig 한계 분석, All-9-Cameras Bootstrap 설계
+- [260131-ontheflynvs_multiview_spawn.md](daily_docs/260131-ontheflynvs_multiview_spawn.md) - On-the-fly NVS 파이프라인 상세 분석, Multiview Gaussian Spawning
 
 ---
 
