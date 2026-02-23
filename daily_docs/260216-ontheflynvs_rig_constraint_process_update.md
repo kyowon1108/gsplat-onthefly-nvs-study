@@ -2,8 +2,6 @@
 
 ## 0. SfM 처리 시간 비교(별도 참고)
 
-이 섹션은 260205 비교 문서 기준의 시간 비교 참고용  
-
 | 단계 | On-the-fly | COLMAP Rig SfM |
 |---|---:|---:|
 | Image Reorganization | - | 0.01s |
@@ -154,7 +152,7 @@ R3 기준값은 `runner.py`의 `compute_aux_gates_from_pilot()` 함수에서 pil
 - **Operational 13/15**: 실패 2건(seed=2)은 seed 민감성 존재 신호
 - 86.7% ≥ 75% 형식 기준은 충족하나, 기준 자체의 타당성이 약함
 
-→ R3는 **"aux spawn 품질이 pilot 수준을 유지하는가"**를 확인한 것이며, **절대적 품질 보장의 근거로는 부족**함.
+→ R3는 "aux spawn 품질이 pilot 수준을 유지하는가"를 확인한 것이며, **절대적 품질 보장의 근거로는 부족**함.
 
 ## 5. 결론
 
