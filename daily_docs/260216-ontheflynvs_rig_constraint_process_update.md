@@ -20,15 +20,21 @@
 R1은 rotation-only 가정 위반 조건(`translation perturbation`)에서 민감도를 보는 항목이며, EQR→pinhole 데이터의 rotation-only 전제 정합성을 간접 점검하는 용도로 해석함.
 R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 보조 시점 품질 유지 여부를 확인하는 항목.
 
-## 2. 확인 질문(R1/R2/R3)
+### 1.1 용어 정의
 
-| 항목 | 무엇을 틀어 확인했는지 | 확인 이유 |
-|---|---|---|
-| R1. 회전 민감도 | `translation perturbation`(0.0/0.5/1.0/2.0%) 주입 | rotation-only 가정 위반 시 `fallback_triggered_rate` 초과 여부를 확인하고, 데이터 전제 정합성을 간접 점검하기 위함임 |
-| R2. 보조 포즈 경로 안정성 | 경로 A/B(`detach=true/false`) 변경 | 경로 변경 시 `nan_detected` 발생 또는 학습 중단 여부를 확인하기 위함임 |
-| R3. 보조 시점 화질 유지 | 기준설정 단계에서 산출한 하한을 기준적용 단계에 고정 적용 | 기준적용 단계에서도 통과율 기준(`>=75%`)을 유지하는지 확인하기 위함임 |
+이 문서에서 사용하는 주요 용어 정의. 파이프라인 상세는 [260131-ontheflynvs_multiview_spawn.md](260131-ontheflynvs_multiview_spawn.md) 참조.
 
-### 2.1 260131 프로세스 매핑
+| 용어 | 의미 |
+|------|------|
+| rotation-only 가정 | 모든 aux 카메라가 ref와 동일한 optical center를 공유하고 회전만 다른 조건. 동일 EQR 프레임에서 pinhole을 추출하면 자연스럽게 성립함 |
+| ref / aux 카메라 | ref(High_Cam07)는 on-the-fly-nvs가 직접 처리하는 기준 카메라. aux(High_Cam06/08, Low_Cam07/08)는 ref 기준 상대 pose로 Gaussian을 추가 생성하는 보조 카메라 |
+| `compose_aux_pose` | ref camera pose에 rig 상대변환을 적용해 aux camera pose를 계산하는 함수 |
+| `fallback_triggered` | aux spawn 시 safety check 실패로 해당 카메라/KF를 skip한 경우. `pairs<min_pairs`(대응점 부족) 또는 `a<=0`(depth fitting 실패) 조건에서 발생 |
+| `detach` (A/B) | aux pose gradient 흐름 제어. A(`detach=true`)는 gradient 차단(안정적이나 pose 미세조정 불가), B(`detach=false`)는 gradient 허용(pose 미세조정 가능하나 발산 위험) |
+| `mean` / `min_cam` / `gap` | aux view PSNR 품질 지표. `mean`=4개 aux 카메라 PSNR 평균, `min_cam`=가장 낮은 카메라 PSNR, `gap`=최고-최저 PSNR 차이 |
+| `geom_A` / `quality_B` / `propagation_C` | R1 pass 판정의 3가지 하위 조건. `geom_A`=기하 정합성, `quality_B`=렌더링 품질, `propagation_C`=fallback_triggered_rate ≤ 0.35. 모두 충족해야 pass |
+
+## 2. 검증 항목(R1/R2/R3)
 
 | 검증 항목 | 260131 프로세스 구간 | 실제 진행 방식 | 확인 지표 |
 |---|---|---|---|
@@ -36,9 +42,7 @@ R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 �
 | R2. 보조 포즈 경로 안정성 | `2.1 변경된 Incremental 흐름`의 Step3(Aux Gaussian Spawn) + Step4(Optimization) | `aux_pose_detach` A/B(`detach=true/false`)를 바꿔 동일 데이터·시드·설정으로 재실행하고, `nan_detected`와 variant 평균 PSNR winner를 비교함 | `nan_detected`, winner(A/B) |
 | R3. 보조 시점 화질 유지 | Step4 이후 `aux_eval_summary.csv` 산출 결과 | 기준설정 단계에서 산출한 aux 화질 하한(mean/min_cam/gap)을 기준적용 단계에 고정 적용해 통과율을 확인함 | aux 화질 통과율 |
 
-- R2의 winner(A/B)는 variant 평균 PSNR이 더 큰 쪽으로 정의함.
-
-### 2.2 검증 위치 다이어그램
+### 2.1 검증 위치 다이어그램
 
 ```mermaid
 flowchart LR
@@ -49,13 +53,6 @@ flowchart LR
     R2["R2: detach true/false 비교"] -.-> S4
     R3["R3: mean/min_cam/gap 하한 적용"] -.-> S5
 ```
-
-- R1은 `compose_aux_pose`에서 `translation_perturb`를 적용하고, 해당 aux pose를 Step3/Step4에서 공통 사용하는 검증임.
-- R2는 Step3/Step4에서 `aux_pose_detach` A/B를 바꿔 `nan_detected`와 winner 변화를 확인하는 검증임.
-- R3는 Step5 평가 구간에서 기준설정 단계 하한(mean/min_cam/gap)을 기준적용 단계에 고정 적용해 통과율을 확인하는 검증임.
-- `fallback_triggered=true` 기록 조건은 `pairs<min_pairs` 또는 `a<=0`임.
-- `nonpos_ratio>0.3`은 skip 처리하지만 `fallback_triggered=false`로 기록됨.
-- `fallback_triggered_rate`는 `b3_2_fit_log.csv`에서 `fallback_triggered=true` row 비율임.
 
 ## 3. 진행
 
@@ -78,7 +75,7 @@ flowchart LR
 | 항목 | 기준 | 관측 결과 | 상태 |
 |---|---|---|---|
 | R1. 회전 민감도 | 통과율 `9/12`, fallback 기준 `0.35` | 통과율 `6/12`, 실패 6건 모두 `propagation_C=Fail`, 실패 run fallback `0.3628~0.4804` | 미충족 |
-| R2. 보조 포즈 경로 안정성 | winner variant에서 `nan_detected=False` | pilot은 A/B 모두 `nan_detected=False`; operational은 `A(seed0)=True`, B는 `3/3` 모두 False, winner `A->B` 변경 | 충족(러너 기준) |
+| R2. 보조 포즈 경로 안정성 | NaN 없는 안정적 경로 존재 | pilot: A/B 모두 NaN 없음. operational: A(seed0)에서 NaN 발생, B는 3개 seed 모두 NaN 없음 → B 채택 | 충족 |
 | R3. 보조 시점 화질 유지 | 통과율 `>=75%`, `mean>=11.0714`, `min_cam>=10.0714`, `gap<=3.6314` | 기준설정 `15/15`, 기준적용 `13/15` (실패 2건, 세부 원인 4.3절) | 충족 |
 
 - fallback 기준 `0.35`는 실행 중 추정값이 아니라 `validation_protocol`에 고정된 운영 기준값임.
@@ -102,10 +99,10 @@ flowchart LR
 | 실패 run | 하한 미달 항목 | 관측값 | 해석 |
 |---|---|---|---|
 | `rotation_S4_seed2` | mean/min_cam/gap 동시 미달 | `mean=10.4897`, `min_cam=9.1529`, `gap=4.2458` | 보조 시점 화질이 전체적으로 내려간 케이스임. 단일 카메라 저하가 아니라 다중 지표 동시 붕괴임 |
-| `pose_path_varB_seed2` | min_cam만 미달 | `mean=11.5265`, `min_cam=9.4249`, `gap=2.7659` | 전체 평균은 유지됐지만 특정 카메라 하한만 깨진 케이스임 |
+| `pose_path_varB_seed2` | min_cam만 미달 | `mean=11.5265`, `min_cam=9.4249`, `gap=2.7659` | 전체 평균은 유지됐지만 High_Cam06 하한만 깨진 케이스임 |
 
 - 실패 2건이 모두 `seed=2`에서 발생했으므로 seed 민감 재현성 리스크가 존재함.
-- 동일 실패가 아님. 하나는 전체 화질 저하형, 하나는 특정 카메라 하한 저하형임.
+- 동일 실패가 아님. 하나는 전체 화질 저하형, 하나는 High_Cam06 단독 저하형임.
 
 ### 4.4 R1 해석 프레임(운영 vs 전제 점검)
 
@@ -119,21 +116,9 @@ flowchart LR
 
 ## 5. 결론
 
-| 의도한 부분 | 나온 결과 | 해석 |
-|---|---|---|
-| R1: 가정 위반 조건에서 fallback 급증 여부를 확인함 | 4.1의 R1 정량 결과에서 운영 기준 미충족이 확인됨 | 운영 게이트 관점에서는 Hold 근거임. 동시에 rotation-only 가정 위반에 민감하다는 간접 신호로 해석 가능함. 단, 데이터 전제 증명은 별도 baseline 검증이 필요함 |
-| R2: 보조 포즈 경로가 발산 없이 유지되는지 확인함 | pilot은 A/B 모두 `nan_detected=False`; operational은 `A(seed0)=True`, B는 `3/3` 모두 False, winner `A->B` 변경됨 | winner가 B이고 B에서 NaN이 없으므로 runner gate 기준(`winner_stable`)은 충족함 |
-| R3: 보조 시점 화질 하한이 운영 단계에서도 유지되는지 확인함 | 기준설정 `15/15`, 기준적용 `13/15`; 실패 2건 세부 유형은 4.3절에 정리됨 | 운영 단계에서도 R3 gate는 충족함 |
-| 최종 운영 가능 여부를 판정함 | 최종 판정 Hold임 | Hold의 직접 원인은 R1 미충족임. 다음 실험 3개의 실행 변수와 판정 기준은 6절에 고정함 |
-
-## 6. 다음 실험 3개(구체 실행안)
-
-| 실험 | 고정 조건 | 변경 변수 | 관측 지표 | 종료/판정 기준 |
-|---|---|---|---|---|
-| `aux_fit_min_pairs` 민감도 | 현재 operational 설정, seed `0/1/2`, perturb `0.0/0.5/1.0/2.0%` | `aux_fit_min_pairs = 400/500/600/700` | `R1 pass_count/12`, `fallback_triggered_rate`(12 run 전체), R2/R3 gate | `R1 pass_count >= 9/12`, 12개 run 모두 `fallback_triggered_rate <= 0.35`, R2 gate=Pass, R3 gate=Pass를 동시에 만족하면 통과함 |
-| fallback 경로 비교 | 위와 동일 | `aux_fit_fallback = skip` vs `homography_low` | `R1 pass_count/12`, `R3 pass_count/15`, `VIEW_GAP_PSNR`, 총 처리 시간 | baseline(`R1=6/12`, `R3=13/15`) 대비 `R1 pass_count`가 `+2` 이상 증가하고, `R3 pass_count`가 13/15 미만으로 하락하지 않으며, 총 처리 시간 증가가 20% 이내인 경로를 채택함 |
-| `High_Cam06` 집중 분석 | 위와 동일 | 카메라 그룹 `full`, `without_High_Cam06`, `only_High_Cam06` | 카메라별 `pairs<500` 빈도, `fallback_triggered_rate`, `min_cam`, `R1 pass_count/12`, `R3 fail_count` | `without_High_Cam06`에서 `R1 pass_count`가 full 대비 `+2` 이상 증가하거나 `R3 fail_count`가 full 대비 1건 이상 감소하면 High_Cam06 병목으로 확정함 |
-
-## 7. 기준 시점
-
-본 문서 수치는 `/docs/validation_results`(pilot/operational) 및 현재 코드 HEAD(`2cd1a3a`) 기준임.
+| 항목 | 결과 |
+|------|------|
+| R1 | 미충족 (6/12, 기준 9/12) |
+| R2 | 충족 (B 경로 채택) |
+| R3 | 충족 (13/15, 기준 75%) |
+| **최종 판정** | **Hold** (R1 미충족) |
