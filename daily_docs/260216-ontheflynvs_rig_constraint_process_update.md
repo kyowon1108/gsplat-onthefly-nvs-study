@@ -30,7 +30,7 @@ R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 �
 | ref / aux 카메라 | ref(High_Cam07)는 on-the-fly-nvs가 직접 처리하는 기준 카메라. aux(High_Cam06/08, Low_Cam07/08)는 ref 기준 상대 pose로 Gaussian을 추가 생성하는 보조 카메라 |
 | `compose_aux_pose` | ref camera pose에 rig 상대변환을 적용해 aux camera pose를 계산하는 함수 |
 | `fallback_triggered` | aux spawn 시 safety check 실패로 해당 카메라/KF를 skip한 경우. `pairs<min_pairs`(대응점 부족) 또는 `a<=0`(depth fitting 실패) 조건에서 발생 |
-| `detach` (A/B) | aux pose gradient 흐름 제어. A(`detach=true`)는 gradient 차단(안정적이나 pose 미세조정 불가), B(`detach=false`)는 gradient 허용(pose 미세조정 가능하나 발산 위험) |
+| `detach` (A/B) | aux pose gradient 흐름 제어. A(`detach=true`)는 gradient 차단, B(`detach=false`)는 gradient 허용. **rotation-only rig에서는 상대변환이 사전 정의되어 있으므로 A가 논리적으로 적합함** |
 | `mean` / `min_cam` / `gap` | aux view PSNR 품질 지표. `mean`=4개 aux 카메라 PSNR 평균, `min_cam`=가장 낮은 카메라 PSNR, `gap`=최고-최저 PSNR 차이 |
 | `geom_A` / `quality_B` / `propagation_C` | R1 pass 판정의 3가지 하위 조건. `geom_A`=기하 정합성, `quality_B`=렌더링 품질, `propagation_C`=fallback_triggered_rate ≤ 0.35. 모두 충족해야 pass |
 
@@ -75,7 +75,7 @@ flowchart LR
 | 항목 | 기준 | 관측 결과 | 상태 |
 |---|---|---|---|
 | R1. 회전 민감도 | 통과율 `9/12`, fallback 기준 `0.35` | 통과율 `6/12`, 실패 6건 모두 `propagation_C=Fail`, 실패 run fallback `0.3628~0.4804` | 미충족 |
-| R2. 보조 포즈 경로 안정성 | NaN 없는 안정적 경로 존재 | pilot: A/B 모두 NaN 없음. operational: A(seed0)에서 NaN 발생, B는 3개 seed 모두 NaN 없음 → B 채택 | 충족 |
+| R2. 보조 포즈 경로 안정성 | NaN 없는 안정적 경로 존재 | pilot: A/B 모두 NaN 없음. operational: A(seed0)에서 NaN 발생, B는 3개 seed 모두 NaN 없음 → B 채택 | 충족 (단, 4.5절 한계점 참조) |
 | R3. 보조 시점 화질 유지 | 통과율 `>=75%`, `mean>=11.0714`, `min_cam>=10.0714`, `gap<=3.6314` | 기준설정 `15/15`, 기준적용 `13/15` (실패 2건, 세부 원인 4.3절) | 충족 |
 
 - fallback 기준 `0.35`는 실행 중 추정값이 아니라 `validation_protocol`에 고정된 운영 기준값임.
@@ -112,13 +112,23 @@ flowchart LR
 | rotation-only 전제 점검 관점 | 가정을 깨면 성능 저하가 뚜렷한가 | 가정 위반 입력에서 `fallback_triggered_rate` 초과 Fail이 반복되어 민감도 신호로 해석 가능함 |
 
 - 위 2개 관점은 충돌하지 않음. 운영 판정은 Hold로 유지하고, R1 결과는 전제 점검의 간접 근거로 병행 해석함.
-- 단, R1 단독으로 “데이터가 절대적으로 rotation-only임”을 증명하는 것은 아님.
+- 단, R1 단독으로 "데이터가 절대적으로 rotation-only임"을 증명하는 것은 아님.
+
+### 4.5 R2 한계점
+
+R2에서 B 경로(`detach=false`)를 채택했으나, 다음 한계점이 존재함.
+
+| 문제 | 설명 |
+|------|------|
+| **논리적 적합성** | rotation-only rig에서는 상대변환이 `blender_rig.json`에 사전 정의되어 있으므로, gradient를 차단하는 A(`detach=true`)가 논리적으로 적합함. B는 상대변환을 학습으로 조정하려는 것이므로 rig 정의와 충돌할 수 있음 |
+| **현상 기반 선택** | B 채택은 "A에서 NaN 발생, B에서 NaN 없음"이라는 현상 기반 선택임. A에서 NaN이 발생한 **근본 원인**이 detach 설정 때문인지 분석되지 않음 |
+| **추가 검토 필요** | B 채택 시 상대변환이 학습 과정에서 틀어지지 않았는지 검증 필요. A에서 NaN 발생 원인을 분리해서 detach 외 다른 요인인지 확인 필요 |
 
 ## 5. 결론
 
 | 항목 | 결과 |
 |------|------|
 | R1 | 미충족 (6/12, 기준 9/12) |
-| R2 | 충족 (B 경로 채택) |
+| R2 | 충족 (B 경로 채택, 단 4.5절 한계점 존재) |
 | R3 | 충족 (13/15, 기준 75%) |
 | **최종 판정** | **Hold** (R1 미충족) |
