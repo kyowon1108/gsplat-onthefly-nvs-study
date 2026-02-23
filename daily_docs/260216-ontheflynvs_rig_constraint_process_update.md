@@ -16,9 +16,11 @@
 
 ## 1. 목적
 
-260131 데이터/설정으로 정의한 운영 기준(통과율 `9/12`, fallback 기준 `0.35`)이 재실행에서도 유지되는지 확인함.
-R1은 rotation-only 가정 위반 조건(`translation perturbation`)에서 민감도를 보는 항목이며, EQR→pinhole 데이터의 rotation-only 전제 정합성을 간접 점검하는 용도로 해석함.
-R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 보조 시점 품질 유지 여부를 확인하는 항목.
+260131 데이터/설정으로 정의한 운영 기준이 재실행에서도 유지되는지 확인함.
+
+- **R1**: translation perturbation을 주입해서 rotation-only 가정을 의도적으로 위반했을 때 fallback 발생률이 어떻게 변하는지 확인
+- **R2**: aux pose gradient 흐름 설정(detach A/B)에 따라 NaN 발생 여부 확인
+- **R3**: aux 시점 렌더링 PSNR이 기준값 이상 유지되는지 확인
 
 ### 1.1 용어 정의
 
@@ -30,9 +32,11 @@ R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 �
 | ref / aux 카메라 | ref(High_Cam07)는 on-the-fly-nvs가 직접 처리하는 기준 카메라. aux(High_Cam06/08, Low_Cam07/08)는 ref 기준 상대 pose로 Gaussian을 추가 생성하는 보조 카메라 |
 | `compose_aux_pose` | ref camera pose에 rig 상대변환을 적용해 aux camera pose를 계산하는 함수 |
 | `fallback_triggered` | aux spawn 시 safety check 실패로 해당 카메라/KF를 skip한 경우. `pairs<min_pairs`(대응점 부족) 또는 `a<=0`(depth fitting 실패) 조건에서 발생 |
-| `detach` (A/B) | aux pose gradient 흐름 제어. A(`detach=true`)는 gradient 차단, B(`detach=false`)는 gradient 허용. **rotation-only rig에서는 상대변환이 사전 정의되어 있으므로 A가 논리적으로 적합함** |
+| `detach` (A/B) | aux pose gradient 흐름 제어. A(`detach=true`)는 gradient 차단, B(`detach=false`)는 gradient 허용. 상세 분석은 4.5절 참조 |
 | `mean` / `min_cam` / `gap` | aux view PSNR 품질 지표. `mean`=4개 aux 카메라 PSNR 평균, `min_cam`=가장 낮은 카메라 PSNR, `gap`=최고-최저 PSNR 차이 |
 | `geom_A` / `quality_B` / `propagation_C` | R1 pass 판정의 3가지 하위 조건. `geom_A`=기하 정합성, `quality_B`=렌더링 품질, `propagation_C`=fallback_triggered_rate ≤ 0.35. 모두 충족해야 pass |
+| pilot / operational | **pilot**(기준설정): 실험을 돌려서 결과 통계로 기준값을 산출하는 단계. **operational**(기준적용): pilot에서 산출한 기준값을 고정하고 재실행해서 기준 유지 여부를 확인하는 단계 |
+| seed | 난수 생성기 초기값. seed=0/1/2로 3회 독립 실행하여 결과의 재현성을 확인함. 같은 seed면 동일한 난수 시퀀스가 발생하므로 결과 재현 가능 |
 
 ## 2. 검증 항목(R1/R2/R3)
 
@@ -40,7 +44,7 @@ R2/R3는 운영 조건(가정 위반 주입 없음)에서 학습 안정성과 �
 |---|---|---|---|
 | R1. 회전 민감도 | `2.1 변경된 Incremental 흐름`의 Step3(Aux Gaussian Spawn) + Step4(Optimization) | `compose_aux_pose` 경로에서 `translation_perturb`를 적용해 aux pose translation을 변형함. 이 pose를 Step3/Step4에서 공통 사용하고, `b3_2_fit_log.csv`의 `fallback_triggered=true` 비율(`fallback_triggered_rate`)을 집계함 | 통과율, `fallback_triggered_rate` |
 | R2. 보조 포즈 경로 안정성 | `2.1 변경된 Incremental 흐름`의 Step3(Aux Gaussian Spawn) + Step4(Optimization) | `aux_pose_detach` A/B(`detach=true/false`)를 바꿔 동일 데이터·시드·설정으로 재실행하고, `nan_detected`와 variant 평균 PSNR winner를 비교함 | `nan_detected`, winner(A/B) |
-| R3. 보조 시점 화질 유지 | Step4 이후 `aux_eval_summary.csv` 산출 결과 | 기준설정 단계에서 산출한 aux 화질 하한(mean/min_cam/gap)을 기준적용 단계에 고정 적용해 통과율을 확인함 | aux 화질 통과율 |
+| R3. 보조 시점 화질 유지 | Step4 이후 `aux_eval_summary.csv` 산출 결과 | pilot에서 산출한 aux 화질 하한(mean/min_cam/gap)을 operational에 고정 적용해 통과율을 확인함 | aux 화질 통과율 |
 
 ### 2.1 검증 위치 다이어그램
 
@@ -58,9 +62,8 @@ flowchart LR
 
 ### 3.1 실행 순서
 
-1. 먼저 기준설정 단계를 실행해 R3 하한(mean/min_cam/gap)과 기준설정 단계 판정 결과를 산출함.
-2. 다음으로 기준적용 단계에서 위 하한을 고정한 상태로 동일 데이터·시드·설정으로 재실행함.
-3. 마지막으로 판정을 재계산해 기준적용 단계 결과와 일치하는지 대조함.
+1. **Pilot**: 실험을 돌려서 R3 기준값(mean/min_cam/gap 하한)을 산출함.
+2. **Operational**: pilot에서 산출한 기준값을 고정하고, 동일 데이터·시드·설정으로 재실행함.
 
 ### 3.2 대상/조건
 
@@ -75,12 +78,11 @@ flowchart LR
 | 항목 | 기준 | 관측 결과 | 상태 |
 |---|---|---|---|
 | R1. 회전 민감도 | 통과율 `9/12`, fallback 기준 `0.35` | 통과율 `6/12`, 실패 6건 모두 `propagation_C=Fail`, 실패 run fallback `0.3628~0.4804` | 미충족 |
-| R2. 보조 포즈 경로 안정성 | NaN 없는 안정적 경로 존재 | pilot: A/B 모두 NaN 없음. operational: A(seed0)에서 NaN 발생, B는 3개 seed 모두 NaN 없음 → B 채택 | 충족 (단, 4.5절 한계점 참조) |
-| R3. 보조 시점 화질 유지 | pilot 결과에서 자동 산출된 기준 적용 | pilot `15/15`, operational `13/15` (실패 2건 모두 seed=2, 세부 4.3절) | 결과 서술 (4.6절 참조) |
+| R2. 보조 포즈 경로 안정성 | NaN 없는 경로 선택 | operational: A(seed0)에서 NaN 발생, B는 3개 seed 모두 NaN 없음 → B 채택 | 결과 서술 (4.5절 참조) |
+| R3. 보조 시점 화질 유지 | pilot 결과에서 자동 산출된 기준 적용 | operational `13/15` (실패 2건 모두 seed=2, 세부 4.3절) | 결과 서술 (4.6절 참조) |
 
-- fallback 기준 `0.35`는 실행 중 추정값이 아니라 `validation_protocol`에 고정된 운영 기준값임.
-- fallback 기준 `0.35`의 근거는 `validation_protocol.yaml`의 `gates.fallback_triggered_gate=0.35`임. pilot/operational `manifest.txt`에 동일 값으로 기록됨.
-- 기준설정 `15/15`는 pilot 집계 규칙(유효 aux row를 pass로 집계) 결과임. 기준적용 `13/15`는 고정 하한을 적용한 실제 pass count임.
+- fallback 기준 `0.35`는 `validation_protocol.yaml`의 `gates.fallback_triggered_gate`에 고정된 값임.
+- R3 기준값은 pilot 결과 통계에서 자동 산출됨 (4.6절 참조). operational `13/15`는 해당 기준을 고정 적용한 결과임.
 - R1 `pass_fail`은 `geom_A + quality_B + propagation_C` 동시 충족 기준임. 운영 실패 6건은 모두 `propagation_C` 미충족으로 발생함.
 
 ### 4.2 정성 평가
@@ -104,15 +106,18 @@ flowchart LR
 - 실패 2건이 모두 `seed=2`에서 발생했으므로 seed 민감 재현성 리스크가 존재함.
 - 동일 실패가 아님. 하나는 전체 화질 저하형, 하나는 High_Cam06 단독 저하형임.
 
-### 4.4 R1 해석 프레임(운영 vs 전제 점검)
+### 4.4 R1 해석
 
-| 해석 관점 | 질문 | 현재 결과 해석 |
-|---|---|---|
-| 운영 게이트 관점 | 현재 프로세스를 바로 운영 가능한가 | 4.1의 R1 결과가 운영 기준 미달이므로 Hold 해석이 타당함 |
-| rotation-only 전제 점검 관점 | 가정을 깨면 성능 저하가 뚜렷한가 | 가정 위반 입력에서 `fallback_triggered_rate` 초과 Fail이 반복되어 민감도 신호로 해석 가능함 |
+R1은 **perturbation을 주입해서 rotation-only 가정을 의도적으로 위반**한 실험이므로, 결과 해석 시 주의 필요.
 
-- 위 2개 관점은 충돌하지 않음. 운영 판정은 Hold로 유지하고, R1 결과는 전제 점검의 간접 근거로 병행 해석함.
-- 단, R1 단독으로 "데이터가 절대적으로 rotation-only임"을 증명하는 것은 아님.
+| 관점 | 해석 |
+|------|------|
+| **실험 설계** | translation perturbation 주입 → rotation-only 가정 위반 상태에서 테스트 |
+| **관측 결과** | 6/12 실패, 모두 `propagation_C` (fallback rate 초과)로 인한 실패 |
+| **의미** | 가정 위반 시 fallback이 증가한다는 것을 확인. 정상 운영 조건(perturbation 없음)과는 다른 상황임 |
+
+- R1 결과로 "운영 불가"를 판정하는 것은 적절하지 않음. perturbation 주입 조건이기 때문.
+- R1은 "가정 위반 시 어떻게 되는가"를 확인하는 민감도 테스트로 해석해야 함.
 
 ### 4.5 R2 한계점
 
@@ -140,16 +145,14 @@ R3 기준값은 `runner.py`의 `compute_aux_gates_from_pilot()` 함수에서 pil
 
 | 문제 | 설명 |
 |------|------|
-| **자기 참조적 기준** | 기준이 pilot 결과에서 산출되므로, pilot 15/15 통과는 논리적 필연임. 외부 품질 기준이 아님 |
+| **자기 참조적 기준** | 기준이 pilot 결과에서 산출되므로, pilot 통과는 구조상 당연함. 외부 품질 기준이 아님 |
 | **min_cam 기준 불일치** | `AUX_PSNR_MIN_CAM_FLOOR`가 실제 `aux_psnr_min_cam` 분포가 아닌 `aux_psnr_mean` 통계에서 산출됨 |
 | **PSNR 절대값 의미 부재** | 11.07 dB가 실제로 acceptable한 품질인지에 대한 외부 검증 없음 |
 
 #### 결과 해석
 
-| 단계 | 통과 | 해석 |
-|------|------|------|
-| Pilot | 15/15 | 기준이 pilot에서 나왔으므로 통과는 당연함 |
-| Operational | 13/15 | 실패 2건(seed=2)은 seed 민감성 존재 신호. 86.7% ≥ 75% 형식 기준은 충족하나, 기준 자체의 타당성이 약함 |
+- **Operational 13/15**: 실패 2건(seed=2)은 seed 민감성 존재 신호
+- 86.7% ≥ 75% 형식 기준은 충족하나, 기준 자체의 타당성이 약함
 
 → R3는 **"aux spawn 품질이 pilot 수준을 유지하는가"**를 확인한 것이며, **절대적 품질 보장의 근거로는 부족**함.
 
@@ -157,7 +160,9 @@ R3 기준값은 `runner.py`의 `compute_aux_gates_from_pilot()` 함수에서 pil
 
 | 항목 | 결과 |
 |------|------|
-| R1 | 미충족 (6/12, 기준 9/12) |
-| R2 | B 경로 채택 (단, 4.5절 한계점 존재) |
-| R3 | pilot 15/15, operational 13/15 (자기 참조적 기준, 4.6절 참조) |
-| **최종 판정** | **Hold** (R1 미충족) |
+| R1 | 6/12 (perturbation 주입 조건, 4.4절 참조) |
+| R2 | B 경로 채택 (4.5절 한계점 존재) |
+| R3 | operational 13/15 (자기 참조적 기준, 4.6절 참조) |
+
+- R1은 perturbation 주입 실험이므로 운영 판정 근거로 사용하기 어려움.
+- R2/R3는 결과를 서술했으나, 각각 한계점이 존재함.
