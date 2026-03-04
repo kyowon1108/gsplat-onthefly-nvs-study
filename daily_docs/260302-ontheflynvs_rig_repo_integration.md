@@ -47,7 +47,7 @@ flowchart LR
 - COLMAP bootstrap으로 초반 pose 품질(72장)은 확보하되,
 - on-the-fly 내부는 **온라인 순차 처리 구조**를 최대한 모사하고,
 - 초기 BA/BAB 비용(시간/메모리) 급증을 피하기 위해 bootstrap keyframe 수를 18로 제한.
-- 18은 keyframe 기준이며 9-view에서 2 timestamp임.
+- 18은 keyframe 기준이며 9-view에서 **약 2 timestamp 분량**임.
 
 ---
 
@@ -76,7 +76,7 @@ flowchart LR
 
 ---
 
-## 4. 정량 결과
+## 4. 정량 결과 (최종 Render-vs-GT 기준)
 
 ### 4.1 추출
 
@@ -110,19 +110,7 @@ flowchart LR
 | mapper | 10.26 s |
 | inspect_result | 0.27 s |
 
-### 4.3 on-the-fly 학습
-
-| 항목 | 값 |
-|---|---|
-| num anchors | 1 |
-| num keyframes | 234 |
-| time | 60.7818 s |
-| FPS | 3.8498 |
-| PSNR | 16.2392 |
-| SSIM | 0.4249 |
-| LPIPS | 0.5395 |
-
-### 4.4 Render vs GT
+### 4.3 최종 Render vs GT
 
 | 항목 | 값 |
 |---|---|
@@ -136,7 +124,15 @@ flowchart LR
 
 해석 주석:
 - `num_pairs=59`는 학습 시 `--test_hold 4`를 사용해 keyframe 인덱스 기준 `i % 4 == 0` 테스트 샘플만 평가했기 때문(총 234개 중 59개).
-- 3.3의 `SSIM=0.4249`는 학습 엔진 내부 `fused_ssim` 기반 train metadata 값이고, 4.4의 `mean_ssim_global=0.7595`는 별도 evaluation 스크립트(global SSIM 근사식)로 계산된 값이어서 직접 1:1 비교 지표가 아님.
+
+### 4.4 참고 실행 통계 (품질 비교 지표 아님)
+
+| 항목 | 값 |
+|---|---|
+| on-the-fly time | 60.7818 s |
+| on-the-fly FPS | 3.8498 |
+| num anchors | 1 |
+| num keyframes | 234 |
 
 ---
 
