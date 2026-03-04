@@ -7,14 +7,13 @@ flowchart LR
     B --> C[datasets/.../images/<view>/frame_xxxxxx.png<br/>총 234장]
 
     C --> D[COLMAP Rig Bootstrap<br/>초반 8 timestamp = 72장]
-    D --> E{Inspect Gate<br/>registration ratio>=0.9<br/>mean reproj<=1.0px}
+    D --> E{"Inspect Gate<br/>registration ratio >= 0.9<br/>mean reproj <= 1.0 px"}
 
     E -- PASS --> F[prepare_onthefly_dataset<br/>sparse/0 연결]
     F --> G[on-the-fly 학습<br/>use_colmap_poses + partial fallback<br/>align=minimal]
     G --> H[Render-vs-GT 평가<br/>summary + GIF + per-image metrics]
 
-    E -- FAIL --> R[bootstrap frame_limit 재조정
-(5 -> 8 -> 10 등)]
+    E -- FAIL --> R["bootstrap frame_limit 재조정<br/>5 to 8"]
     R --> D
 ```
 
