@@ -1,21 +1,16 @@
 # Research History Index
 
-> 3D Gaussian Splatting On-the-fly NVS 연구 문서의 중앙 인덱스
+> 3D Gaussian Splatting On-the-fly NVS 연구 문서의 중앙 인덱스 (간소화된 Phase 기준)
 
 ---
 
-## Phase 1: 환경 구축 & 기초 학습 (9/11 ~ 9/13)
+## Phase 1: 환경 구축 및 베이스라인 실험 (2025-09-11 ~ 2025-10-16)
 
-- [250913-installation-commands.md](daily_docs/250913-installation-commands.md) - Ubuntu 22.04 + CUDA 11.8 + Gaussian Splatting 설치
 - [250911-3d-rendering-issues.md](daily_docs/250911-3d-rendering-issues.md) - SIBR Viewer 빌드 문제 해결 (OpenCV/Embree 버전 충돌)
 - [250911-sparse-settings.md](daily_docs/250911-sparse-settings.md) - COLMAP Sparse Reconstruction 파이프라인 정리
 - [250912-first-feedback.md](daily_docs/250912-first-feedback.md) - 평가 메트릭(PSNR, SSIM, LPIPS) 학습 및 용어 정리
 - [250912-metrics-issues.md](daily_docs/250912-metrics-issues.md) - Train/Test Split
-
----
-
-## Phase 2: Intel RealSense D435 실험 (9/19 ~ 10/16)
-
+- [250913-installation-commands.md](daily_docs/250913-installation-commands.md) - Ubuntu 22.04 + CUDA 11.8 + Gaussian Splatting 설치
 - [250919-third-feedback.md](daily_docs/250919-third-feedback.md) - RealSense D435 첫 실내 촬영, 카메라 파라미터 고정 실험
 - [250925-retry-viewsense.md](daily_docs/250925-retry-viewsense.md) - 640x480 해상도 실험, SSIM 0.75로 품질 낮음 확인
 - [250929-try-viewsense-fhd.md](daily_docs/250929-try-viewsense-fhd.md) - FHD 해상도 실험 iPhone 촬영 이미지와의 차이 분석
@@ -25,21 +20,16 @@
 
 ---
 
-## Phase 3: Insta360 X5 360도 카메라 실험 (11/5 ~ 11/18)
+## Phase 2: 360 카메라 Rig 파이프라인 구축 (2025-11-05 ~ 2025-12-02)
 
 - [251105-3dgut_with_Insta360_X5.md](daily_docs/251105-3dgut_with_Insta360_X5.md) - 3DGUT 분석, Insta360 X5 캘리브레이션 파라미터 정리
 - [251113-insta360_school_view.md](daily_docs/251113-insta360_school_view.md) - Blender 360 Extractor로 다시점 이미지 추출, 290장 생성
 - [251118‑rig_viewer_results.md](daily_docs/251118‑rig_viewer_results.md) - COLMAP rig_configurator 적용, Rig 기반 PSNR 10dB 향상
-
----
-
-## Phase 4: Rig 최적화 & 파이프라인 구축 (11/18 ~ 12/2)
-
 - [251202-school_rig_adjust.md](daily_docs/251202-school_rig_adjust.md) - 좌표계 변환(OpenGL→COLMAP), 마스킹 기법, 자동화 파이프라인
 
 ---
 
-## Phase 5: 논문 연구 & Rig SfM 실험 (12/23 ~ 1/13)
+## Phase 3: Rig SfM 검증 및 3DGS 품질 비교 (2025-12-23 ~ 2026-01-13)
 
 - [251223-study_skyfall_gs.md](daily_docs/251223-study_skyfall_gs.md) - Skyfall-GS 논문 분석, Two-Stage Pipeline (위성→3DGS)
 - [251226-school_rigged_SfM.md](daily_docs/251226-school_rigged_SfM.md) - COLMAP Rigged SfM macOS 실행, Rig 일관성 검증
@@ -48,12 +38,14 @@
 
 ---
 
-## Phase 6: On-the-fly NVS Multi-Camera Rig (1/19 ~)
+## Phase 4: On-the-fly NVS 멀티카메라 통합 및 운영 검증 (2026-01-19 ~ 2026-03-02)
 
 - [260119-search_rig_ontheflynvs.md](daily_docs/260119-search_rig_ontheflynvs.md) - On-the-fly NVS에 9카메라 Rig 지원 구현, Inter-camera redundancy 제거, 주파수 스케줄러 적용
 - [260123-ontheflynvs_analysis.md](daily_docs/260123-ontheflynvs_analysis.md) - Ablation Study (핵심 기법 기여도 분석), 실시간 스트리밍 아키텍처 설계
 - [260126-rig_aware_bootstrap_proposal.md](daily_docs/260126-rig_aware_bootstrap_proposal.md) - Rotation-only Rig 한계 분석, All-9-Cameras Bootstrap 설계
 - [260131-ontheflynvs_multiview_spawn.md](daily_docs/260131-ontheflynvs_multiview_spawn.md) - On-the-fly NVS 파이프라인 상세 분석, Multiview Gaussian Spawning
+- [260216-ontheflynvs_rig_constraint_process_update.md](daily_docs/260216-ontheflynvs_rig_constraint_process_update.md) - Rig 제약 대응 검증(R1/R2/R3), fallback/재현성 리스크 분석
+- [260302-ontheflynvs_rig_repo_integration.md](daily_docs/260302-ontheflynvs_rig_repo_integration.md) - Saebit 9-view 통합, COLMAP bootstrap + partial pose 주입 파이프라인 검증
 
 ---
 
