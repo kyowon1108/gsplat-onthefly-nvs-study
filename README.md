@@ -6,9 +6,9 @@
 
 ## 개요
 
-**목표**: 360도 카메라(Insta360 X5)와 COLMAP Rig 기반 SfM을 활용하여 3D Gaussian Splatting 품질을 향상시키는 파이프라인 구축
+**목표**: 360도 카메라(Insta360 X5), COLMAP Rig SfM, on-the-fly NVS를 결합한 다중 카메라 NVS 파이프라인 구축
 
-**현재 진행 상황**: Phase 6 - On-the-fly NVS Multi-Camera Rig 지원 구현 및 실험 완료
+**현재 진행 상황 (2026-03-02 기준)**: Phase 4 - Saebit 9-view Rig 파이프라인 통합 및 Render-vs-GT 평가 완료
 
 ---
 
@@ -18,12 +18,10 @@
 
 | Phase | 기간 | 내용 |
 |-------|------|------|
-| 1 | 9/11 ~ 9/13 | 환경 구축, 평가 메트릭 학습 (PSNR, SSIM, LPIPS) |
-| 2 | 9/19 ~ 10/16 | Intel RealSense D435 실험, 해상도/조명 영향 분석 |
-| 3 | 11/5 ~ 11/18 | Insta360 X5 360도 카메라 실험, Rig 기반 재구성 |
-| 4 | 11/18 ~ 12/2 | 좌표계 변환(Blender→COLMAP), 자동화 파이프라인 |
-| 5 | 12/23 ~ 1/13 | Rig SfM 비교 실험, 3DGS 품질 검증 |
-| 6 | 1/19 ~ | On-the-fly NVS Multi-Camera Rig 구현, 주파수 스케줄러 적용 |
+| 1 | 2025-09-11 ~ 2025-10-16 | 환경 구축, 평가 메트릭 학습, RealSense D435 베이스라인 실험 |
+| 2 | 2025-11-05 ~ 2025-12-02 | Insta360 X5 360도 촬영, Rig 좌표계 정렬 및 자동화 파이프라인 구축 |
+| 3 | 2025-12-23 ~ 2026-01-13 | Rig SfM 비교 실험, 3DGS 품질 향상 검증 |
+| 4 | 2026-01-19 ~ 2026-03-02 | on-the-fly NVS 멀티카메라 Rig 지원, 운영 검증, Saebit 통합 |
 
 ---
 
@@ -32,10 +30,12 @@
 | 항목 | 결과 |
 |------|------|
 | 품질 영향 순서 | 조명 > 해상도 > 카메라 파라미터 |
-| Rig SfM 효과 | 3D 포인트 +35%, Observations +119% |
-| Rig → 3DGS | PSNR +1.24dB, SSIM +0.067, LPIPS -0.072 |
+| Rig SfM 효과 (260111) | 3D 포인트 +35%, Observations +119% |
+| Rig → 3DGS (260113) | PSNR +1.24dB, SSIM +0.067, LPIPS -0.072 |
 | 360도 카메라 | 수평 Coverage 우수, 수직 Coverage 한계 |
-| On-the-fly NVS (Rig) | PSNR 20.39dB, 전체 파이프라인 14.6분, Peak GPU 9.8GB |
+| On-the-fly Rig 운영 검증 (260216) | fallback 민감도, aux pose 경로, aux 품질 게이트 재검증 완료 |
+| Saebit 9-view 통합 (260302) | COLMAP bootstrap 등록률 72/72, mean reproj 0.5485px, Render-vs-GT PSNR 16.2319 / SSIM 0.7595 |
+| 실행 시간 참고 (260302) | COLMAP bootstrap 32.00s, on-the-fly 60.78s |
 
 ---
 
