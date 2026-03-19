@@ -27,7 +27,7 @@ flowchart LR
 | Python 환경 | `conda activate onthefly_nvs` |
 | 해상도 | 960 x 960 |
 | 사용 뷰 | 9-view (`High_Cam01,02,06,07,08 + Low_Cam01,02,07,08`) |
-| Ref view | `High_Cam06` |
+| Ref view | `High_Cam07` |
 
 ---
 
