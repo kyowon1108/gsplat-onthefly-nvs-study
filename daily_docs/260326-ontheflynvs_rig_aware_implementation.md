@@ -134,14 +134,14 @@ flowchart LR
 
 ### 전체 메트릭 비교
 
-| Metric | Ref Only | Ref+Aux | 개선 폭 |
+| Metric | Ref Only HiQual | Ref+Aux HiQual | 개선 폭 |
 |---|---:|---:|---:|
-| PSNR | 10.778 | 15.478 | +4.700 |
-| SSIM | 0.228 | 0.451 | +0.223 |
-| LPIPS | 0.663 | 0.481 | -0.182 |
-| Keyframes | 18 | 23 | +5 |
+| PSNR | 11.128 | 15.168 | +4.040 |
+| SSIM | 0.243 | 0.417 | +0.174 |
+| LPIPS | 0.645 | 0.539 | -0.106 |
+| Keyframes | 16 | 23 | +7 |
 | Anchors | 1 | 1 | 0 |
-| Time (s) | 7.696 | 29.777 | +22.081 |
+| Time (s) | 6.609 | 22.431 | +15.822 |
 
 ---
 
@@ -152,14 +152,14 @@ flowchart LR
 <table>
   <thead>
     <tr>
-      <th width="50%">Ref Only</th>
-      <th width="50%">Ref+Aux</th>
+      <th width="50%">Ref Only HiQual</th>
+      <th width="50%">Ref+Aux HiQual</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="../video_picture/260326/ref_only_colmap_gui.png" alt="Ref Only COLMAP GUI"></td>
-      <td><img src="../video_picture/260326/ref_aux_colmap_gui.png" alt="Ref+Aux COLMAP GUI"></td>
+      <td><img src="../video_picture/260326/ref_only_colmap_gui.png" alt="Ref Only HiQual COLMAP GUI"></td>
+      <td><img src="../video_picture/260326/ref_aux_colmap_gui.png" alt="Ref+Aux HiQual COLMAP GUI"></td>
     </tr>
   </tbody>
 </table>
@@ -178,48 +178,48 @@ flowchart LR
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00001_gt.png" alt="frame_00001 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_ref.png" alt="frame_00001 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_refaux.png" alt="frame_00001 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_ref.png" alt="frame_00001 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_refaux.png" alt="frame_00001 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00161</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00161_gt.png" alt="frame_00161 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_ref.png" alt="frame_00161 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_refaux.png" alt="frame_00161 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_ref.png" alt="frame_00161 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_refaux.png" alt="frame_00161 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00321</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00321_gt.png" alt="frame_00321 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_ref.png" alt="frame_00321 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_refaux.png" alt="frame_00321 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_ref.png" alt="frame_00321 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_refaux.png" alt="frame_00321 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00481</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00481_gt.png" alt="frame_00481 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_ref.png" alt="frame_00481 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_refaux.png" alt="frame_00481 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_ref.png" alt="frame_00481 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_refaux.png" alt="frame_00481 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00641</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00641_gt.png" alt="frame_00641 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_ref.png" alt="frame_00641 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_refaux.png" alt="frame_00641 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_ref.png" alt="frame_00641 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_refaux.png" alt="frame_00641 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00801</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00801_gt.png" alt="frame_00801 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_ref.png" alt="frame_00801 Ref"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_refaux.png" alt="frame_00801 Ref+Aux"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_ref.png" alt="frame_00801 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_refaux.png" alt="frame_00801 Ref+Aux HiQual"></td>
     </tr>
   </tbody>
 </table>
