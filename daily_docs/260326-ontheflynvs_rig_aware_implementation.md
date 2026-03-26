@@ -10,10 +10,10 @@
 | Python 환경 | `conda activate onthefly_nvs` |
 | 데이터셋 | Saebit 화단 (EQR → 9-view pinhole 추출) |
 | 해상도 | 960 × 960 |
-| 총 프레임 수 | 23 timestamp (`1, 41, 81, ...`만 사용) |
-| 카메라 구성 | 9-view (High 5대 + Low 4대) |
+| 총 프레임 수 | 23 timestamp |
+| 카메라 구성 | 9-view (High 5 + Low 4) |
 | Ref camera | High_Cam07 |
-| Aux cameras | High_Cam01/02/06/08, Low_Cam01/02/07/08 (8대) |
+| Aux cameras | High_Cam01/02/06/08, Low_Cam01/02/07/08 |
 
 ---
 
@@ -107,7 +107,6 @@ ref-view 2D-3D PnP → mini BA (ref pose만 최적화) → pose 확정
 
 ![Incremental Pose Test With Actual Images](../video_picture/260326/frame_00321_incremental_pose_actual_images.png)
 
-
 ### 3.3 Gaussian Spawn: Coverage 확장
 
 **원본**: ref view 시야에서만 Gaussian 생성
@@ -143,11 +142,27 @@ flowchart LR
 | Keyframes | 18 | 23 | +5 |
 | Anchors | 1 | 1 | 0 |
 | Time (s) | 7.696 | 29.777 | +22.081 |
-| FPS | 2.988 | - | - |
 
 ---
 
-## 5. 정성 평가 - 전체 held-out 프레임 비교
+## 5. 정성 평가
+
+#### COLMAP GUI Trajectory Comparison
+
+<table>
+  <thead>
+    <tr>
+      <th width="50%">Ref Only</th>
+      <th width="50%">Ref+Aux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="../video_picture/260326/ref_only_colmap_gui.png" alt="Ref Only COLMAP GUI"></td>
+      <td><img src="../video_picture/260326/ref_aux_colmap_gui.png" alt="Ref+Aux COLMAP GUI"></td>
+    </tr>
+  </tbody>
+</table>
 
 <table>
   <thead>
