@@ -1,0 +1,111 @@
+{
+  "frame_name": "frame_00321.png",
+  "bootstrap_keyframes": 8,
+  "ref_raw_matches": 70,
+  "ref_inlier_subset": 32,
+  "ref_inliers_seed": 32,
+  "ref_inliers_refined": 29,
+  "total_inliers_seed": 130,
+  "total_inliers_refined": 127,
+  "aux_stats": {
+    "High_Cam01": {
+      "raw_matches": 12,
+      "filtered_matches": 0
+    },
+    "High_Cam02": {
+      "raw_matches": 9,
+      "filtered_matches": 0
+    },
+    "High_Cam06": {
+      "raw_matches": 82,
+      "filtered_matches": 47
+    },
+    "High_Cam08": {
+      "raw_matches": 23,
+      "filtered_matches": 10
+    },
+    "Low_Cam01": {
+      "raw_matches": 23,
+      "filtered_matches": 9
+    },
+    "Low_Cam02": {
+      "raw_matches": 8,
+      "filtered_matches": 0
+    },
+    "Low_Cam07": {
+      "raw_matches": 84,
+      "filtered_matches": 61
+    },
+    "Low_Cam08": {
+      "raw_matches": 30,
+      "filtered_matches": 20
+    }
+  },
+  "seed_errors": {
+    "ref": {
+      "count": 32,
+      "mean": 2.0171618461608887,
+      "median": 2.017615795135498
+    },
+    "High_Cam06": {
+      "count": 47,
+      "mean": 3.642190456390381,
+      "median": 3.45928955078125
+    },
+    "High_Cam08": {
+      "count": 10,
+      "mean": 2.9170730113983154,
+      "median": 2.1979329586029053
+    },
+    "Low_Cam01": {
+      "count": 9,
+      "mean": 2.618839979171753,
+      "median": 2.9259426593780518
+    },
+    "Low_Cam07": {
+      "count": 61,
+      "mean": 2.8095180988311768,
+      "median": 2.549386501312256
+    },
+    "Low_Cam08": {
+      "count": 20,
+      "mean": 3.348397970199585,
+      "median": 2.829068899154663
+    }
+  },
+  "refined_errors": {
+    "ref": {
+      "count": 32,
+      "mean": 2.1403088569641113,
+      "median": 2.1050832271575928
+    },
+    "High_Cam06": {
+      "count": 47,
+      "mean": 3.602590322494507,
+      "median": 3.3315212726593018
+    },
+    "High_Cam08": {
+      "count": 10,
+      "mean": 2.032353639602661,
+      "median": 1.3061877489089966
+    },
+    "Low_Cam01": {
+      "count": 9,
+      "mean": 2.438714027404785,
+      "median": 2.5366828441619873
+    },
+    "Low_Cam07": {
+      "count": 61,
+      "mean": 2.7095744609832764,
+      "median": 2.507507562637329
+    },
+    "Low_Cam08": {
+      "count": 20,
+      "mean": 2.914337396621704,
+      "median": 1.8492047786712646
+    }
+  },
+  "output_keyframe_type": "RigKeyframe",
+  "rig_ref_view": "High_Cam07",
+  "figure_path": "/home/kapr/Desktop/gsplat-onthefly-nvs-study/video_picture/260326/frame_00321_incremental_pose_actual_images.png"
+}
