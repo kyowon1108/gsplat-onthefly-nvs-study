@@ -178,48 +178,48 @@ flowchart LR
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00001_gt.png" alt="frame_00001 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_ref.png" alt="frame_00001 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_refaux.png" alt="frame_00001 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_ref_hiqual.png" alt="frame_00001 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_refaux_hiqual.png" alt="frame_00001 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00161</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00161_gt.png" alt="frame_00161 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_ref.png" alt="frame_00161 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_refaux.png" alt="frame_00161 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_ref_hiqual.png" alt="frame_00161 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_refaux_hiqual.png" alt="frame_00161 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00321</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00321_gt.png" alt="frame_00321 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_ref.png" alt="frame_00321 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_refaux.png" alt="frame_00321 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_ref_hiqual.png" alt="frame_00321 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_refaux_hiqual.png" alt="frame_00321 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00481</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00481_gt.png" alt="frame_00481 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_ref.png" alt="frame_00481 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_refaux.png" alt="frame_00481 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_ref_hiqual.png" alt="frame_00481 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_refaux_hiqual.png" alt="frame_00481 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00641</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00641_gt.png" alt="frame_00641 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_ref.png" alt="frame_00641 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_refaux.png" alt="frame_00641 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_ref_hiqual.png" alt="frame_00641 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_refaux_hiqual.png" alt="frame_00641 Ref+Aux HiQual"></td>
     </tr>
     <tr>
       <td colspan="3"><strong>frame_00801</strong></td>
     </tr>
     <tr>
       <td><img src="../video_picture/260326/qual_table_assets/frame_00801_gt.png" alt="frame_00801 GT"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_ref.png" alt="frame_00801 Ref HiQual"></td>
-      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_refaux.png" alt="frame_00801 Ref+Aux HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_ref_hiqual.png" alt="frame_00801 Ref HiQual"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_refaux_hiqual.png" alt="frame_00801 Ref+Aux HiQual"></td>
     </tr>
   </tbody>
 </table>
