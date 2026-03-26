@@ -103,6 +103,11 @@ ref-view 2D-3D PnP → mini BA (ref pose만 최적화) → pose 확정
 - Aux view의 2D-3D 대응을 활용하여 ref pose를 보정
 - Rig relative pose를 고정 제약으로 사용하여 기하적 일관성 유지
 
+#### 예시 이미지
+
+![Incremental Pose Test With Actual Images](../video_picture/260326/frame_00321_incremental_pose_actual_images.png)
+
+
 ### 3.3 Gaussian Spawn: Coverage 확장
 
 **원본**: ref view 시야에서만 Gaussian 생성
@@ -119,6 +124,11 @@ flowchart LR
 
 - Dedup으로 중복 Gaussian 제거
 
+#### 실제 예시 이미지
+
+![Rig Spawn Dedup Example](../video_picture/260326/frame_00321_rig_dedup_actual_images.png)
+
+- ref spawn과 aux spawn으로 모인 candidate를 `dedup 전`과 `dedup 후`로 비교
 ---
 
 ## 4. 정량 평가
@@ -139,6 +149,62 @@ flowchart LR
 
 ## 5. 정성 평가 - 전체 held-out 프레임 비교
 
-아래 이미지는 held-out 6개 프레임 전체를 `Original | Ref Only | Ref+Aux` 순서로 정리함.
-
-![Original vs Ref Only vs Ref+Aux Overview](../video_picture/260326/ref_vs_rig_overview.png)
+<table>
+  <thead>
+    <tr>
+      <th width="33.33%">GT</th>
+      <th width="33.33%">Ref</th>
+      <th width="33.33%">Ref+Aux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="3"><strong>frame_00001</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_gt.png" alt="frame_00001 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_ref.png" alt="frame_00001 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00001_refaux.png" alt="frame_00001 Ref+Aux"></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>frame_00161</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_gt.png" alt="frame_00161 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_ref.png" alt="frame_00161 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00161_refaux.png" alt="frame_00161 Ref+Aux"></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>frame_00321</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_gt.png" alt="frame_00321 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_ref.png" alt="frame_00321 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00321_refaux.png" alt="frame_00321 Ref+Aux"></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>frame_00481</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_gt.png" alt="frame_00481 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_ref.png" alt="frame_00481 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00481_refaux.png" alt="frame_00481 Ref+Aux"></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>frame_00641</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_gt.png" alt="frame_00641 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_ref.png" alt="frame_00641 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00641_refaux.png" alt="frame_00641 Ref+Aux"></td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>frame_00801</strong></td>
+    </tr>
+    <tr>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_gt.png" alt="frame_00801 GT"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_ref.png" alt="frame_00801 Ref"></td>
+      <td><img src="../video_picture/260326/qual_table_assets/frame_00801_refaux.png" alt="frame_00801 Ref+Aux"></td>
+    </tr>
+  </tbody>
+</table>

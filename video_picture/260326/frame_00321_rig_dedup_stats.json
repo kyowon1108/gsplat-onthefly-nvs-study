@@ -1,0 +1,18 @@
+{
+  "frame_name": "frame_00321.png",
+  "before_dedup": 733685,
+  "after_dedup": 114061,
+  "reduction_ratio_percent": 84.45368243864874,
+  "source_counts": {
+    "ref": 107217,
+    "High_Cam01": 135922,
+    "High_Cam02": 95189,
+    "High_Cam06": 75336,
+    "High_Cam08": 67462,
+    "Low_Cam01": 70375,
+    "Low_Cam02": 66332,
+    "Low_Cam07": 75273,
+    "Low_Cam08": 40579
+  },
+  "figure_path": "/home/kapr/Desktop/gsplat-onthefly-nvs-study/video_picture/260326/frame_00321_rig_dedup_actual_images.png"
+}
