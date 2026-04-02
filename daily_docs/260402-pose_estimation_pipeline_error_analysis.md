@@ -250,11 +250,13 @@ test_hold 4
 
 ### 10.3 발견 내용
 
-**Bootstrap은 variance의 원인이 아님**
+**Bootstrap은 run-to-run variance의 주요 원인이 아님**
 - 10회 실행해도 첫 8개 keyframe pose는 사실상 동일 (Q std < 0.0001)
 - Bootstrap phase의 재현성은 매우 높음
 
 **Variance는 Incremental의 fallback 구간에서 발생**
+- Fallback 구간(00561~00761)은 trajectory의 **U-turn 후반부**에 해당
+- 카메라가 방향을 크게 전환한 직후 구간으로, feature matching이 어려워지는 영역
 - frame_00641: Q std = 0.35 (quaternion이 완전히 다름)
 - Pose 추정 실패 → constant velocity fallback → 각 run마다 다른 방향으로 발산
 - 관측 범위에서는 발산 후 회복되지 않음
@@ -267,8 +269,8 @@ test_hold 4
 ┌────────────────────────────────────────────────────────────┐
 │                    근본 원인 (Root Causes)                  │
 ├────────────────────────────────────────────────────────────┤
-│ A. Bootstrap은 안정적 (10회 반복해도 pose 동일)             │
-│ B. Incremental 특정 구간(00561~00761)에서 pose 추정 실패   │
+│ A. Bootstrap은 variance의 주요 원인 아님 (10회 반복해도 pose 동일) │
+│ B. U-turn 후반 구간(00561~00761)에서 pose 추정 실패        │
 │ C. Fallback(constant velocity) 사용 시 trajectory 발산     │
 │ D. 발산 후 회복 메커니즘 없음 (feed-forward only)          │
 └────────────────────────────────────────────────────────────┘
