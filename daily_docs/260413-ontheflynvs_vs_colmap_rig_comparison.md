@@ -82,7 +82,7 @@ flowchart TD
 
 ### 7. 소요 시간
 
-Bootstrap median depth 0.1 정규화로 on-the-fly-nvs 절대 스케일이 COLMAP보다 약 9.4× 작음 (Umeyama scale = 9.3777).
+비교 범위: on-the-fly-nvs는 pose estimation + 최소 Gaussian 학습(`num_iterations=2`)까지, COLMAP은 전체 rig SfM(feature → matching → global BA)까지. iterations 상향 시 on-the-fly-nvs 소요 시간은 증가할 수 있음.
 
 | 단계 | on-the-fly-nvs | COLMAP | 배율 |
 |---|---:|---:|---:|
@@ -97,7 +97,9 @@ COLMAP 병목은 sequential_matcher(119s, 전체의 71%). Quadratic matching + r
 
 ### 8. 궤적 정확도 (ATE)
 
-정렬: ref view(High_Cam07) camera center 23개 → Umeyama similarity 정렬 후 ATE 계산. Scale 9.38은 bootstrap median depth 0.1 정규화에 의한 것으로, COLMAP typical step ≈ 1 unit.
+정렬: ref view(High_Cam07) camera center 23개 → Umeyama similarity 정렬(scale + rotation + translation 보정) 후 ATE 계산. 아래 ATE는 scale 정렬 이후 COLMAP 스케일 기준 값임. COLMAP 결과를 pseudo ground truth로 사용하며, COLMAP 자체 reprojection error는 0.58px.
+
+> 참고: Umeyama scale = 9.3777. Bootstrap median depth 0.1 정규화로 on-the-fly-nvs 절대 스케일이 COLMAP보다 약 9.4× 작기 때문이며, ATE 계산에는 이미 보정 반영됨.
 
 | 지표 | 값 | 비고 |
 |---|---:|---|
@@ -130,7 +132,9 @@ COLMAP 병목은 sequential_matcher(119s, 전체의 71%). Quadratic matching + r
 | Trajectory 후반 | 완전 발산 | 점진적 drift (max 0.28) |
 | Timing 편차 (10회) | 미측정 | mean 27.50s ± 0.25s (~1%) |
 
-핵심: per-view prev_keyframes + IRLS Huber Fréchet mean으로 fallback을 완전히 제거함.
+핵심: per-view prev_keyframes + IRLS Huber Fréchet mean으로 fallback 완전 제거.
+
+> 주의: 현재 결과는 CUDA guard 우회 + Huber weight 버그(`r_abs.sqrt()`) 상태에서 측정된 것임. 두 이슈 수정 후 재측정 필요.
 
 **10회 반복 실험 상세:**
 
@@ -186,6 +190,15 @@ Step 5: cross-view matching / scale normalization (필요 시)
 
 ### on-the-fly-nvs rig
 
+| 옵션 | 값 |
+|---|---|
+| `--use_rig` | True |
+| `--rig_config` | `blender_rig.json` |
+| `--fix_focal` | True |
+| `--init_fov` | 90 |
+| `--num_iterations` | 2 |
+| `--viewer_mode` | none |
+
 ```bash
 cd /opt/ftp/files/260411/on-the-fly-nvs
 conda run --no-capture-output -n onthefly_nvs python -u train.py \
@@ -196,6 +209,14 @@ conda run --no-capture-output -n onthefly_nvs python -u train.py \
 ```
 
 ### COLMAP rig SfM
+
+| 옵션 | 값 |
+|---|---|
+| Feature extractor | SIFT, GPU |
+| Sequential matcher overlap | 10 |
+| Quadratic overlap | 1 |
+| Rig verification | 사용 |
+| Mapper intrinsics | 고정 (PINHOLE 480,480,480,480) |
 
 ```bash
 cd /opt/ftp/files/260411/colmap_result
@@ -209,3 +230,7 @@ bash run.sh
 conda run --no-capture-output -n onthefly_nvs python \
     /opt/ftp/files/260411/colmap_result/compare_trajectories.py
 ```
+
+---
+
+> **결과 유효 범위:** 본 보고서의 비교는 pose estimation 정확도와 등록 안정성에 한정됨. 렌더링 품질(PSNR/SSIM/LPIPS)은 CUDA rasterizer patch 후 `num_iterations` 상향 및 render script 작성 이후 별도 평가 예정. 현재 결과는 CUDA guard 우회 + Huber weight 버그 상태의 조건부 결과임.
