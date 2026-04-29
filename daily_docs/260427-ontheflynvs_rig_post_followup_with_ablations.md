@@ -10,6 +10,8 @@
   - "BA 동등성" → "trajectory 수준 일치성"
   - "9-view 활용도 100%" → "9 view 모두 참여, 단 effective_weight 분포는 비균등"
   - "직접 증거" → 4-cell ablation 측정값
+- 본 차수 후속 작업으로 photometric pose 자유도를 rig 단위로 재구성한 결과
+  ([260429](260429-rig_unit_photometric_followup.md) 참고) 가 측정 5 로 §7 에 추가됨.
 
 ---
 
@@ -39,6 +41,7 @@
 | Stats dump | `train.py` (env-gate) | `def3962` | `RIG_DUMP_PNP_STATS=path.json` 로 dump |
 | 분석 도구 | `tools/analyze_feedback_round1.py` (452 LOC) | `a6561b4` | Stage 1~3 결과 집계, COLMAP Sim(3) 정렬 자동 호출 |
 | Figure 도구 | `tools/visualize_feedback_round1.py` | `9f13aa5` | 본 보고서의 ablation figure 3장 (lr_poses, per-view PnP, seam) 생성 |
+| Rig 단위 photometric optimizer | `scene/scene_model.py`, `scene/keyframe.py`, `scene/optimizers.py`, `train.py`, `tools/test_b1_autograd.py` | `9706823` | photometric pose 자유도를 view 단위 (effective 48-DoF/ts) 에서 rig 단위 (6-DoF/ts) 로 재구성. 9 view 의 photometric loss gradient 가 한 rig_pose 로 합쳐져 자유도 차원에서 rig 가정 강제. (+366 LOC) — 변경 내용과 결과는 [260429](260429-rig_unit_photometric_followup.md) §2~§4 참고. |
 
 ---
 
@@ -143,6 +146,12 @@ Bundle Adjustment 는 absolute reference 없이 풀면 7-DoF (Degrees of Freedom
 
 따라서 안전한 표현은 trajectory-level high agreement (단일 scene 측정).
 
+#### 후속 — rig 단위 자유도 셋업의 5-run
+
+[260429](260429-rig_unit_photometric_followup.md) §4 에서 photometric optimizer
+를 rig 단위로 재구성한 셋업 (측정 5) 의 같은 protocol 5-run 결과를 보고함. 본
+표와의 비교는 그쪽 §4.1 / §4.2 를 참고.
+
 ---
 
 ### 7. 이슈 3: GS 최적화의 pose 보정 (lr_poses ablation)
@@ -210,6 +219,13 @@ Pairwise 차이:
 
 - 단일 시드, 단일 scene, iter=100.
 - 분산 미측정. iter=500 에서의 동일 ablation 미수행.
+
+#### 후속 — 측정 5 (자유도 단위 재구성)
+
+본 절의 4-cell ablation (측정 1~4) 은 모두 photometric pose 자유도가 *view
+단위* (한 ts 당 effective 48-DoF) 인 구조에서 측정된 것이다. 자유도 단위
+자체를 rig 단위 (6-DoF/ts) 로 재구성한 측정 5 셋업의 결과 (5-cell 확장
+figure 포함) 는 [260429](260429-rig_unit_photometric_followup.md) §3.4 참고.
 
 ---
 
@@ -345,6 +361,11 @@ Run A 1회의 per-ts × per-view residual 데이터를 `analyze_feedback_round1.
 - Train 과 holdout 사이 1.5–1.7 dB gap 은 정직한 generalization 신호이며, iter 증가 (100 → 500) 시 holdout PSNR 도 +1.65 dB 함께 향상됨 — 학습 시간 증가가 over-fitting 으로 가지 않음을 시사.
 - 단 holdout view 는 같은 EQR 에서 잘라낸 virtual view 이며 pose 는 known `rel_R` 로 derived. 즉 view 1개를 Gaussian scene optimization 에서 제외한 view-held-out 평가이며, 완전 unseen-trajectory 평가가 아님 — 본 결과의 적용 범위가 제한됨.
 
+#### 후속 — rig 단위 자유도 셋업의 split metric
+
+[260429](260429-rig_unit_photometric_followup.md) §3.2 참고. 측정 5 셋업의
+holdout PSNR 17.466 (iter=100) 은 측정 1 의 17.463 과 0.003 dB 차이로 동등.
+
 ### 12. Render samples (정성 평가)
 
 ![render_grid](../video_picture/260427/render_grid.png)
@@ -364,6 +385,11 @@ train 과 holdout 의 시각 quality gap 이 합리적 범위. 정적 영역 (�
 - ts=10 에서 Cam02 (rel_R 135°, force-z=1 한계 view) 대 Cam06 (rel_R -45°, 정상 영역) 비교
 - 단일 frame PSNR: Cam02 21.84, Cam06 22.51 (gap 0.7 dB)
 - holdout 평가 시 gap 이 더 커짐 — Cam02 holdout 시 holdout PSNR 15.33 dB (Cam01 holdout 18.18 대비 약 -2.5 dB). structural limit 의 정량화.
+
+#### 후속 — 원본 3DGS vs 본 시스템 (측정 5) 3-way 비교
+
+[260429](260429-rig_unit_photometric_followup.md) §5 에서 GT × 원본 3DGS × 본
+시스템 (측정 5, rig 단위) 의 정량/정성 3-way 비교를 보고함.
 
 ### 13. Runtime — Per-stage breakdown (iter=100)
 
