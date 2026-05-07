@@ -11,6 +11,16 @@
 - raw_scaling 을 log-space 에서 [-10, 3] 으로 clamp함.
 - 의도는 `exp(raw_scaling)` 의 상한 (`exp(3) = 20`) 을 두어 Gaussian size 폭발을 막는 것.
 
+cap 경계의 정확한 의미:
+
+| cap 경계 | exp 값 | scene scale 0.1 대비 | 의미 |
+|---|---|---|---|
+| max = 3 | exp(3) ≈ **20** | **200×** | 큰 ellipsoid 까지는 허용 (sky / 원경 영역 cover 가능) |
+| min = −10 | exp(−10) ≈ 4.5e−5 | 0.045% | 매우 작은 Gaussian 까지 허용 (point-like 도 OK) |
+
+- max = 3 은 *log(20)* 에서 역산. *scene scale 의 200× 까지가 한계* 라는 heuristic.
+- min 은 사실상 lower bound — 학습 중 raw_scaling 이 −10 까지 떨어지는 일은 드물어 발동 빈도 낮음.
+
 ### 2.1 학습 step 위치
 
 ```mermaid
@@ -39,9 +49,51 @@ flowchart TD
 
 ## 3. 원인 해석
 
-`raw_scaling.data.clamp_()` 는 parameter value 만 변경하고 Adam state 는 변경하지 않음. 따라서 실제 parameter 와 optimizer momentum 사이에 state mismatch 가 생김 (§3 표의 *cuda crash* row 참고).
+`raw_scaling.data.clamp_()` 는 parameter value 만 변경하고 Adam state 는 변경하지 않음. 따라서 실제 parameter 와 optimizer momentum 사이에 state mismatch 가 생김.
 
-### 3.1 같은 crash 로 이어지는 두 경로
+### 3.1 Adam optimizer 의 3 가지 state
+
+| 변수 | 정식 명칭 | 수식 | 직관 | reach |
+|---|---|---|---|---|
+| `value` (θ) | parameter | θ_t = θ_{t-1} − lr · m_t / √v_t | Gaussian 의 *현재 값* | — |
+| `exp_avg` (m) | 1 차 momentum | m_t = β_1 m_{t-1} + (1−β_1) g_t | grad 의 지수가중 평균 (방향) | β_1 = 0.9 → 약 10 step |
+| `exp_avg_sq` (v) | 2 차 momentum | v_t = β_2 v_{t-1} + (1−β_2) g_t² | grad² 의 지수가중 평균 (크기 / 불확실성) | β_2 = 0.999 → 약 1000 step |
+
+- `update = lr · m / √v` — m 이 *최근* grad 추세, √v 가 *장기* grad 변동.
+- 본 base 의 `SparseGaussianAdam` 도 이 구조 그대로 — 매 `optimizer.step()` 에 *세 변수 모두 갱신* 이 표준.
+- **clamp 가 value 만 자르고 m, v 는 그대로 두면 *세 변수 일관성 (Adam 의 가정)* 이 깨짐** — 이게 desync 의 본질.
+
+### 3.2 예시 — 하늘 Gaussian 의 desync 시나리오
+
+상황 설정:
+
+- Insta360 9-rig 학습 중 sky 영역의 큰 Gaussian.
+- 하늘은 *큰 영역 단일 컬러* → photometric loss 가 *하나의 큰 Gaussian* 으로 cover 하기를 선호.
+- 본 base 는 ADC 부재 → 분해 메커니즘 없음 → raw_scaling 을 키우는 압력만 누적.
+
+학습 step 별 변화 (가상 시나리오, β_1 = 0.9, β_2 = 0.999):
+
+| step | grad g | m (1차) | v (2차) | θ (raw_scaling) | clamp | update m/√v |
+|---:|---:|---:|---:|---:|:---:|---:|
+| 18 | +0.5 | 0.40 | 0.25 | 2.95 | — | 0.80 |
+| 20 | +1.5 | 0.53 | 0.27 | 2.97 | — | 1.01 |
+| 21 | +2.0 | 0.68 | 0.28 | 2.9999 | — | 1.29 |
+| **22** | +5.0 | 1.11 | 0.30 | **cap → 3.00** | **★** | 2.03 ← *desync 시작* |
+| 23 | +2.0 | 1.20 | 0.30 | 3.00 (cap) | ★ | 2.19 |
+| 24 | +3.0 | 1.38 | 0.30 | 3.00 (cap) | ★ | **2.52** |
+| 25+ | — | 1.5+ ↑↑ | 0.30 (정체) | 3.00 + Δ_huge | — | **5+ spike** → overflow |
+
+핵심 패턴:
+
+- step 22 에서 cap 발동 → value (θ) 는 3.0 에 고정.
+- m 은 *β_1 = 0.9* 로 *빠르게 누적* — 1.11 → 1.20 → 1.38 → 1.5+ 로 매 step 점점 큼.
+- v 는 *β_2 = 0.999* 로 *거의 정체* — 0.30 근처 머묾.
+- update = m / √v → m 만 커지고 √v 그대로 → **update 가 점점 spike**.
+- 어느 시점 update 가 비정상적으로 커서 cap 다시 씌우기 *전에* rasterizer 의 tile-count arithmetic 을 overflow → cuda crash.
+
+→ 즉 cap 이 value 만 막고 *m, v 는 폭주하도록 방치* 한 구조가 *m / √v lag 차이* 를 통해 spike 생성. *증상을 막으려던 cap 이 같은 증상을 만들어내는* 메커니즘이 이것.
+
+### 3.3 같은 crash 로 이어지는 두 경로
 
 ```mermaid
 flowchart TD
