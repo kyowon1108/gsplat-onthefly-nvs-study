@@ -46,9 +46,6 @@
 |:---:|:---:|
 | ![otf_rig_trajectory](../video_picture/260507/otf_rig_colmap.png) | ![otf_norig_trajectory](../video_picture/260507/otf_norig_colmap.png) |
 
-- **좌 (rig 제약 O)** — 점들이 단일 oval loop 으로 균등하게 정렬. rig 가 강체로 유지된 채 timestamp 따라 일정하게 이동. spatial extent 작음.
-- **우 (rig 제약 X)** — 동일 viewport 안에서 여러 partial loop + 분리된 cluster 로 fragmented. §3-4 의 "4 회 reboot → scene 5 조각 분할" 이 그림 위에 직접 매칭됨. 우측 아래 별개 cluster 가 그 대표 예. spatial extent 가 좌측 대비 현저히 큼 → ATE 2.11 m / scene_scale 의 61.4% 가 시각적으로 확인됨.
-
 ### 2.5 COLMAP rig (3DGS rig 입력) trajectory
 
 ![colmap_rig_trajectory](../video_picture/260507/rig_constraint_colmap.png)
@@ -77,14 +74,6 @@
 - 17 프레임 누락 (8.2%).
 - 9 view × 23 ts 입력에서 view 가 다른 카메라로 넘어가는 8 곳의 transition 중 4 곳에서 reboot 발생 → scene 5 조각으로 분할.
 - ATE 2.11 m = scene_scale 의 61.4% → trajectory 복원 실패 수준.
-
-### 3.5 잔여 −1.89 dB (3DGS rig 대비) 원인 추정
-
-- OTF rig 는 ATE 0.0105 m 로 COLMAP 과 거의 같은 pose 임에도 3DGS (OTF→3DGS) 가 3DGS (rig) 에 못 미침.
-- 추정 원인:
-  - (a) per-image SIMPLE_PINHOLE 207 개 vs 공유 PINHOLE 9 개 [3DGS rig] — 같은 params 라도 3DGS 의 BA 가 image 별 독립 refine 가능.
-  - (b) 47k SIFT 삼각측량 점 vs 41k rig-constrained BA 점.
-  - (c) 잔여 ATE 0.0105 m 의 합산 효과.
 
 ---
 
