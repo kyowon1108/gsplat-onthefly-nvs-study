@@ -37,25 +37,11 @@ flowchart TD
 
 ---
 
-## 3. 추가 관찰
-
-- raw_scaling.clamp 가 포함된 설정에서 동일한 CUDA error 가 *재현* 됨.
-- raw_scaling.clamp 제거 후 crash 해소됨.
-
-| 항목 | 상태 | 위치 |
-|---|---|---|
-| `raw_scaling.clamp` | **제거됨** | commit `24ac933` (2026-04-25) |
-| `raw_xyz.clamp(±100)` | 유지 | `scene/scene_model.py:365`. envelope 매우 넓어 학습 중 발동 빈도 낮음 |
-| NaN guard (`nan_to_num_`) | 유지 | `scene/scene_model.py:367-371`, 5 key 에 적용 |
-| cuda crash | 사라짐 | raw_scaling.clamp가 crash의 직접 trigger였을 가능성이 높음 |
-
----
-
-## 4. 원인 해석
+## 3. 원인 해석
 
 `raw_scaling.data.clamp_()` 는 parameter value 만 변경하고 Adam state 는 변경하지 않음. 따라서 실제 parameter 와 optimizer momentum 사이에 state mismatch 가 생김 (§3 표의 *cuda crash* row 참고).
 
-### 4.1 같은 crash 로 이어지는 두 경로
+### 3.1 같은 crash 로 이어지는 두 경로
 
 ```mermaid
 flowchart TD
@@ -78,7 +64,7 @@ flowchart TD
 - 누적된 desync 가 어느 시점 단일 update 를 비정상적으로 큰 값으로 만들고, 결과적으로 rasterizer 가 깨짐.
 - 즉 *증상을 막으려던 cap 이 동일한 증상을 만들어내는* 역설 — 그림에서 두 경로가 같은 Crash 노드로 모임.
 
-### 4.2 Adam state 정합성 — 본 base 의 표준 패턴
+### 3.2 Adam state 정합성 — 본 base 의 표준 패턴
 
 `scene/optimizers.py:121-144` 의 `SparseGaussianAdam.add_and_prune()` 가 올바른 패턴:
 
@@ -101,11 +87,11 @@ param["exp_avg_sq"] = cat(param["exp_avg_sq"][mask], zeros)
 
 ---
 
-## 5. 구조적 원인
+## 4. 구조적 원인
 
-더 근본적으로는 현재 구현에 원본 3DGS 의 split / clone / prune 기반 ADC 가 없음. 따라서 일부 Gaussian 이 커지는 압력 자체는 여전히 존재함. clamp 는 *증상 cap* 이었고, 압력의 *원천* 은 ADC 부재 그 자체.
+더 근본적으로는 현재 구현에 원본 3DGS 의 split / clone / prune 기반 ADC 가 없음. 따라서 일부 Gaussian 이 커지는 압력 자체는 여전히 존재함.
 
-### 5.1 동작 비교 — 원본 3DGS vs on-the-fly NVS
+### 4.1 동작 비교 — 원본 3DGS vs on-the-fly NVS
 
 | 동작 | 원본 3DGS (Kerbl 2023) | on-the-fly NVS (본 base) |
 |---|---|---|
@@ -115,7 +101,7 @@ param["exp_avg_sq"] = cat(param["exp_avg_sq"][mask], zeros)
 | Pruning | 매 N iter (opacity < threshold 또는 size > screen 비율) | spawn 시점만 (`opacity > 0.05` AND `screen_size < 0.5W`) |
 | raw_scaling 발산 시 동작 | split 이 자동 분해 → scaling 자연 감소 | 분해 없음 → scaling 발산 누적 |
 
-### 5.2 Iteration 흐름 비교
+### 4.2 Iteration 흐름 비교
 
 | 시점 | 원본 3DGS | on-the-fly NVS |
 |---|---|---|

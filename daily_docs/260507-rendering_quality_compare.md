@@ -40,20 +40,7 @@
 
 - train ↔ holdout 격차 1.07 dB → photometric overfit 없이 rig 구조가 holdout 에 일반화됨.
 
-### 2.4 Pose 정확도 (COLMAP trajectory 대비, OTF 방법)
-
-| 방법 | ATE RMSE (m) | RPE rot RMSE (°) | ATE / scene_scale |
-|------|---:|---:|---:|
-| OTF rig (iter=100) | 0.0105 | 0.039 | 0.31% |
-| OTF non-rig (iter=30) | **2.1148** | **2.16** | **61.4%** |
-
-- ATE / RPE 는 우메야마 정렬 후 COLMAP rig trajectory 를 reference 로 측정.
-- *ATE / scene_scale* = ATE RMSE / scene_scale × 100 (%). scene_scale 은 학습 환경 측 정의값 (본 데이터에선 ≈ 3.4 m). 동일 m 단위 ATE 라도 scene 크기에 따라 의미가 다르므로 상대 오차로 환산한 보조 지표.
-- 3DGS 두 방법은 COLMAP pose 를 그대로 사용하므로 trajectory 자체는 COLMAP 결과와 동일. 본 표는 OTF 가 자체 추정한 pose 의 COLMAP-rig 대비 정확도.
-
-### 2.5 Trajectory 정성 비교 (OTF NVS → COLMAP export)
-
-§2.4 의 ATE / RPE 차이를 정성적으로 확인. OTF NVS 의 추정 카메라를 COLMAP 형식으로 export 한 뒤 동일 viewport · 동일 축 스케일로 카메라 위치만 비교.
+### 2.4 Trajectory 정성 비교 (OTF NVS → COLMAP gui export)
 
 | OTF rig (ATE 0.011 m, scene_scale 의 0.31%) | OTF non-rig (ATE 2.115 m, scene_scale 의 61.4%) |
 |:---:|:---:|
@@ -62,16 +49,9 @@
 - **좌 (rig 제약 O)** — 점들이 단일 oval loop 으로 균등하게 정렬. rig 가 강체로 유지된 채 timestamp 따라 일정하게 이동. spatial extent 작음.
 - **우 (rig 제약 X)** — 동일 viewport 안에서 여러 partial loop + 분리된 cluster 로 fragmented. §3-4 의 "4 회 reboot → scene 5 조각 분할" 이 그림 위에 직접 매칭됨. 우측 아래 별개 cluster 가 그 대표 예. spatial extent 가 좌측 대비 현저히 큼 → ATE 2.11 m / scene_scale 의 61.4% 가 시각적으로 확인됨.
 
-### 2.6 참조 trajectory — COLMAP rig (3DGS rig 입력)
-
-§2.4 의 ATE / RPE 가 어떤 reference 에 대한 거리인지, §1 표의 "3DGS (rig) — 41,678 sparse points" 가 어떤 모습인지를 한 그림으로 확인.
+### 2.5 COLMAP rig (3DGS rig 입력) trajectory
 
 ![colmap_rig_trajectory](../video_picture/260507/rig_constraint_colmap.png)
-
-- **빨간 점**: rig-constrained COLMAP 추정 카메라 (3DGS rig 학습 입력 = §2.4 OTF rig / non-rig ATE/RPE 의 reference).
-- **회색·검정 노이즈**: COLMAP 의 41,678 sparse points (배경 scene 구조).
-- OTF rig (§2.5 좌) 의 oval loop 과 기하 형상이 일치 → OTF rig 가 ATE 0.0105 m / scene_scale 0.31% 로 COLMAP 에 근접한 수준에 도달했음을 정성적으로 뒷받침.
-- OTF non-rig (§2.5 우) 의 fragmented cluster 는 본 reference 에서 크게 벗어나 있음을 동시에 확인 가능.
 
 ---
 
