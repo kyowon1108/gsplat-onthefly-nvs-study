@@ -11,7 +11,7 @@
 
 ---
 
-## 1. 교수님 요청사항과 본 보고서의 목적
+## 1. 보고 목적
 
 ### 1.1 분석 내용
 
@@ -82,6 +82,18 @@ relative[name] = Rt
 |---|---:|---|
 | naive 9-view (독립 최적화) | 9 × 9 = 81 | view별 (R 6D + t 3) |
 | **현재 rig 방식** | **9 (rig_R6D 6 + rig_t 3)** | timestamp당 rig pose 1개, view pose는 `rel_R @ rig_pose`로 유도 |
+
+```mermaid
+flowchart LR
+    A["EQR 1장\n(Insta360 X5)"] --> B["EQR → pinhole 변환\n(blender_rig.json)"]
+    B --> C["9개 virtual view\nrel_R exact (수학적 결정)"]
+    C --> D["baseline = 0\n동일 광학 중심 공유"]
+    D --> E["H_ij = K · R_ij · K⁻¹\ndepth-independent homography"]
+    E --> F["Cross-view warp\n깊이 추정 없이 즉시 가능"]
+
+    style D fill:#ffe0e0,stroke:#cc8888
+    style F fill:#e0ffe0,stroke:#88cc88
+```
 
 ### 2.3 기존 OTF-NVS 대비 변경 지점
 
@@ -271,7 +283,7 @@ E_k = max_π E_k^π                  # 모든 view에서의 최대값 → Gaussi
 ĝ_i,x = Σ_j |∂L_j/∂μ_i,x|    # 부호 상쇄 없이 크기만 합산
 ```
 
-- 코드 변경: CUDA 커널에서 한 줄 수정으로 구현 가능.
+- 코드 변경: AbsGS 자체 기준 CUDA 커널 한 줄 수정. 우리 rig 코드 적용 시 별도 검토 필요.
 
 **우리와의 관계**: gradient 자체를 쓰지 않는 approach (Cross-view P̃의 LoG-based spawn)가 이 문제를 우회함. FastGS도 AbsGS의 absolute gradient를 채택.
 
@@ -298,13 +310,11 @@ SGLD:       g ← g + a · ∇_g log P(g) + b · ε
 
 ```
 3DGS-MCMC: spawn 이후 SGLD noise로 poorly-placed Gaussian이 better position 탐색
-            → 잘못 태어난 Gaussian을 구제하는 방식
+            → 잘못 태어난 Gaussian을 사후에 구제
 우리:        spawn 전에 rig geometry로 false positive spawn 원천 차단
             → 처음부터 잘못 태어나지 않도록 예방
 
-공통점: 둘 다 ADC heuristic의 대안
-차이점: post-spawn management vs pre-spawn filtering
-        batch-compatible vs streaming-compatible
+공통점: 둘 다 gradient 기반 ADC heuristic의 대안
 ```
 
 ### 4.5 소결: gradient-based ADC의 한계와 confidence signal의 필요성
@@ -316,7 +326,7 @@ SGLD:       g ← g + a · ∇_g log P(g) + b · ε
   gradient magnitude ≠ reconstruction error signal
 
 OTF streaming에서 추가 악화:
-  ① 30 iter/keyframe → gradient 자체가 불충분
+  ① 100 iter/keyframe → gradient 자체가 불충분 (batch 3DGS 30,000 iter 대비)
   ② streaming → 과거 view 전체 집계 불가 (E_k, ĝ, s_d 모두 batch 전제)
 
 → gradient-based ADC는 OTF에서 이중으로 신뢰할 수 없음
@@ -324,11 +334,32 @@ OTF streaming에서 추가 악화:
 
 | batch 방법 | 요구 조건 | OTF에서 충족 여부 |
 |---|---|---|
-| Revising E_k^π | 모든 view 접근, 많은 iter | ❌ (streaming, 30 iter) |
-| AbsGS ĝ | 많은 iter, 안정된 gradient | ❌ (30 iter) |
+| Revising E_k^π | 모든 view 접근, 많은 iter | ❌ (streaming, 100 iter) |
+| AbsGS ĝ | 많은 iter, 안정된 gradient | ❌ (100 iter) |
 | FastGS VCD s_d | K개 training view 전체 | ❌ (streaming) |
 
-**우리의 bridge**: Known R_ij (rig geometry) → immediate coverage signal → gradient 없이, batch 없이, 현재 timestamp에서 즉시 판단.
+```mermaid
+flowchart TD
+    A["gradient magnitude 기반 ADC"]
+
+    A --> B["Batch 3DGS 한계\nRevising / AbsGS 지적"]
+    A --> C["OTF Streaming 한계"]
+
+    B --> D["gradient ≠ reconstruction error\n(attribution 불일치 · sign 상쇄)"]
+    C --> E["① 100 iter/keyframe\n→ gradient 자체 불충분\n(batch 3DGS 30,000 iter 대비)"]
+    C --> F["② streaming\n→ 전체 view 집계 불가\nE_k · ĝ · s_d 모두 batch 전제"]
+
+    D --> G["gradient-based ADC\nOTF에서 이중으로 신뢰 불가"]
+    E --> G
+    F --> G
+
+    G --> H["해법: rig geometry 기반 confidence signal\nKnown R_ij → homography warp → coverage 즉시 판단\ngradient 없이 · batch 없이 · 현재 timestamp에서"]
+
+    style G fill:#ffe0e0,stroke:#cc8888
+    style H fill:#e0ffe0,stroke:#88cc88
+```
+
+**우리의 bridge**: Known R_ij (rig geometry) → 현재 timestamp만으로 즉각적인 coverage signal 확보. §6.2 C2에서 구체화.
 
 ---
 
@@ -416,6 +447,14 @@ flowchart LR
 ---
 
 ## 6. 제안 연구 방향
+
+| Contribution                                        | Track 연결             | 핵심 이론 근거                                 | 구현 상태  |
+| --------------------------------------------------- | -------------------- | ---------------------------------------- | :----: |
+| C1 Structural Zero-Baseline Rig Parameterization    | Track 2 (Rig)        | EQR 기하 exact → DoF 9/timestamp           |   ✅    |
+| C2 Cross-View Rendered-Coverage Aggregation         | Track 2 (Confidence) | Revising E_k^π · AbsGS ĝ → coverage로 대체  |   ⬜    |
+| C3 Streaming-Compatible Confidence-Driven Lifecycle | Track 2 (Confidence) | FastGS VCD/VCP → streaming 버전            | ⬜ 1·3단 |
+| C4 OTF-Compatible Coarse-to-Fine Scheduling         | Track 1+2            | DashGaussian DFT adaptive → bootstrap 대체 |   ⬜    |
+
 ### 6.1 C1: Structural Zero-Baseline Rig Parameterization
 
 **내용**: EQR → rotation-only virtual rig 물리적 제약을 structural prior로 전환. rel_t = 0 hardcode → pose optimization이 rotation manifold에만 집중.
@@ -427,9 +466,6 @@ t_view = rel_R @ rig_t + 0               # rel_t = 0 hardcoded
 ```
 
 **실험 가능 비교**: naive 9-view independent 최적화 vs structural rig parameterization.
-
-> 안전한 표현: "9 params/timestamp (rotation manifold 한정)"  
-> 위험한 표현: ❌ "9배 빠른 pose 추정"
 
 ### 6.2 C2: Cross-View Rendered-Coverage Aggregation (Cross-view P̃)
 
@@ -443,7 +479,7 @@ P̃_i: rendered coverage probability at view i
 warp: H_ij = K · rel_R · K⁻¹ (depth-independent homography)
 ```
 
-Axis C 방법들과의 비교:
+- Axis C 방법들과의 비교:
 
 | 방법 | 작동 원리 | OTF 호환성 |
 |---|---|---|
@@ -454,9 +490,7 @@ Axis C 방법들과의 비교:
 
 **구현 caveat**: FOV mask (EQR 극지방 영역), 해상도 mismatch 시 bilinear interpolation 오차, boundary 픽셀 처리. "exact homography"가 아닌 "near-exact coverage estimation"으로 표현.
 
-**구현 현황**: ⬜ P_s = P_L - P̃ 수식 구조만 존재. 9-view warp + max 집계 미구현.
-
-### 6.3 C3: Streaming-Compatible Confidence-Driven Primitive Lifecycle (3단 방어선)
+### 6.3 C3: Streaming-Compatible Confidence-Driven Primitive Lifecycle (3단 방어선 설계)
 
 **내용**: spawn → existence → removal을 confidence signal로 관리.
 
@@ -475,6 +509,45 @@ Axis C 방법들과의 비교:
 
    s_d^i = (1/K) Σ_j Σ_{p∈Ω_i} I(L1 error at p > τ)
    K = get_prev_keyframes() ← 다른 ts → 실제 translation 확보됨
+```
+
+```mermaid
+flowchart TD
+    IN["새 keyframe 도착\n(timestamp t)"] --> S1
+
+    subgraph stage1["1단: pre-spawn — Cross-view P̃  ⬜ 미구현"]
+        S1["신호: R_ij exact (EQR 기하)\n→ H_ij = K·R_ij·K⁻¹"]
+        S2["9-view rendered coverage\nP̃_i(warp(u,v; R_ij)) 집계"]
+        S3["P_s = max(P_L − max_i[P̃_i], 0)\nfalse positive spawn 억제"]
+        S1 --> S2 --> S3
+    end
+
+    S3 --> S4
+
+    subgraph stage2["2단: spawn-time — occlusion depth check  ✅ 구현됨"]
+        S4["신호: rendered depth vs new Gaussian depth"]
+        S5["렌더링 앞에 위치하는 Gaussian만 허용"]
+        S4 --> S5
+    end
+
+    S5 --> S6
+
+    subgraph stage3["3단: post-spawn — VCD-style pruning  ⬜ 미구현"]
+        S6["신호: past keyframe (다른 ts → 실제 translation baseline)"]
+        S7["s_d = (1/K) Σ high-error pixel 비율\nfloater · 퇴화 Gaussian 제거"]
+        S6 --> S7
+    end
+
+    S7 --> OUT["정제된 Gaussian scene"]
+
+    note1["FastGS VCP: offline K-view\nbatch 전제 → OTF 불가 ❌"]
+    note2["우리 3단: past keyframe = real translation\nstreaming에서 real baseline 확보 ✅"]
+    S7 -. "vs FastGS" .- note1
+    S7 -. "우리" .- note2
+
+    style stage1 fill:#fff8e0,stroke:#ccaa44
+    style stage2 fill:#e8f4e8,stroke:#44aa44
+    style stage3 fill:#fff8e0,stroke:#ccaa44
 ```
 
 **이론 배경 논문 매핑**:
@@ -501,17 +574,19 @@ Axis C 방법들과의 비교:
 | 어려운 장면 | 이미 step 5에서 HR로 전환 | LR stage 더 유지 |
 | 쉬운 장면 | 불필요하게 LR 유지 가능 | 빠르게 HR 전환 |
 
-**OTF 제약 해법**:
+**OTF 제약 해법 (제안)**:
 
 ```
 DashGaussian: 전체 scene DFT energy X(I)를 사전에 앎 (offline)
 
-우리 해법: bootstrap (9-view × N_init frames) → X(F) 추정
+제안: bootstrap (9-view × N_init frames) → X(F) 추정
 → streaming 중 X(I_r)/X(F) 비율로 각 keyframe pyr_lvl 전환 결정
-→ DashGaussian의 offline 전제를 rig bootstrap으로 해결
+→ DashGaussian의 offline 전제를 rig bootstrap으로 대체한다는 아이디어
 ```
 
-**구현 현황**: ⬜ pyr_lvl 인프라 존재 (`pyr_levels=2`, `pyr_lvl` per keyframe). adaptive 스케줄러 미구현.
+> ⚠️ bootstrap X(F)가 전체 scene X(I)의 유효한 대리 추정이 되는지는 수학적·실험적으로 검증되지 않음. 아이디어 제안 단계.
+
+**구현 현황**: ⬜ pyr_lvl 인프라 존재 (`pyr_levels=2`, `pyr_lvl` per keyframe, `keyframe.py` L61/L298–307). adaptive 스케줄러 미구현.
 
 ---
 
@@ -534,49 +609,28 @@ DashGaussian: 전체 scene DFT energy X(I)를 사전에 앎 (offline)
 
 ### 7.3 측정 지표
 
-| 지표 | 설명 | 비고 |
-|---|---|---|
-| PSNR / SSIM / LPIPS | 렌더링 품질 | Mip-NeRF 360 또는 자체 EQR scene |
-| Gaussian count (P_fin) | spawn 효율 | Cross-view P̃ 효과 확인 |
-| spawn count (P_add) | false positive spawn 수 | 1단 방어선 효과 |
-| keyframe latency (s) | streaming 실시간성 | OTF 적합성 |
-| total sequence time | 전체 처리 시간 | Track 1 근거 |
-| ATE / RPE | pose 정확도 | rig constraint 효과 |
-| n_floaters | depth residual 기반 floater 수 | 3단 pruning 효과 |
+| 지표                     | 설명                          | 비고                           |
+| ---------------------- | --------------------------- | ---------------------------- |
+| PSNR / SSIM / LPIPS    | 렌더링 품질                      | Mip-NeRF 360 또는 자체 EQR scene |
+| Gaussian count (P_fin) | spawn 효율                    | Cross-view P̃ 효과 확인          |
+| spawn count (P_add)    | false positive spawn 수      | 1단 방어선 효과                    |
+| keyframe latency (s)   | streaming 실시간성              | OTF 적합성                      |
+| total sequence time    | 전체 처리 시간                    | Track 1 근거                   |
+| ATE / RPE              | pose 정확도                    | rig constraint 효과            |
+| n_floaters             | depth residual 기반 floater 수 | 3단 pruning 효과                |
 
 ### 7.4 성공 기준
 
-| 기준 | 내용 |
-|---|---|
-| 품질 유지 | 베이스라인 대비 PSNR −0.5 dB 이내 |
-| 속도 개선 | vanilla 3DGS offline 대비 10× 수준 (targeting, 실험 검증 필요) |
-| Gaussian 감소 | Cross-view P̃ on vs off에서 P_fin 유의미한 감소 |
-| ATE 개선 | structural rig parameterization으로 COLMAP 대비 drift 감소 |
+| 기준          | 내용                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| 품질 유지       | 베이스라인 대비 PSNR −0.5 dB 이내                                                                               |
+| 속도 개선       | keyframe당 latency 기준 실험 측정 (10× 목표는 offline batch 논문 수치로, 직접 비교 불가 — 우리는 sequence당 총 처리 시간을 지표로 사용 예정) |
+| Gaussian 감소 | Cross-view P̃ on vs off에서 P_fin 유의미한 감소                                                                |
+| ATE 개선      | structural rig parameterization으로 COLMAP 대비 drift 감소                                                   |
 
 ---
 
-## Appendix A. Reference 검증표
-
-| 논문                     | 학회/venue                     | arXiv      | PDF 직접 파싱         | 주요 수치 확인     | 비고                         |
-| ---------------------- | ---------------------------- | ---------- | ----------------- | ------------ | -------------------------- |
-| 3DGS (Kerbl et al.)    | SIGGRAPH 2023                | 2308.04079 | ✅                 | ✅            | 모든 baseline 기준             |
-| Taming-3DGS            | SIGGRAPH Asia 2024           | 2406.15643 | ✅                 | ✅            | DashGaussian Table 1에서 재측정 |
-| DashGaussian           | CVPR 2025                    | 2503.18402 | ✅                 | ✅ Table 1 전체 | CVPR Open Access PDF       |
-| FastGS                 | CVPR 2026 Highlight (저자 기준)† | 2511.04283 | ✅                 | ✅ Table 1 전체 | **저자: Shiwei Ren 외**       |
-| LiteGS                 | arXiv 2025 (**JMLR 아님**)     | 2503.01199 | ✅                 | ✅ Table 1    | journal ref 없음 확인          |
-| Speedy-Splat           | CVPR 2025                    | 2412.00578 | ✅                 | ✅ abstract   | 렌더링 6.7× 주 contribution    |
-| Revising Densification | ECCV 2024                    | —          | ✅ ecva.net        | ✅ 수식         | Meta Reality Labs          |
-| AbsGS                  | ACM MM 2024                  | 2404.10484 | ✅                 | ✅ 수식 + Table | ACM DOI 확인                 |
-| 3DGS-MCMC              | NeurIPS 2024 Spotlight       | 2404.09591 | ✅                 | ✅ 수식         | project page 확인            |
-| CF-3DGS                | CVPR 2024                    | 2312.07504 | ✅ CVF Open Access | ✅            | pp. 20796–20805            |
-| OTF NVS                | SIGGRAPH 2025 / ACM TOG      | 2506.05558 | ✅                 | ✅            | upstream baseline          |
-| OTF Multi-Cam Rigs     | arXiv 2025 (venue 미확정)       | 2512.08498 | ✅                 | ✅ Table 1    | physical baseline 확인       |
-
-> † 공식 CVF CVPR2026 proceedings 2026-05-08 미발행. 저자 project page / GitHub 기준.
-
----
-
-## Appendix B. 속도 향상 정량 비교표
+## Appendix A. 속도 향상 정량 비교표
 
 - Mip-NeRF 360 기준. 절대값이 아닌 경향으로 해석 (GPU 환경 상이).
 
@@ -598,23 +652,23 @@ DashGaussian: 전체 scene DFT energy X(I)를 사전에 앎 (offline)
 
 ---
 
-## Appendix C. 용어 및 수식 정리
+## Appendix B. 용어 및 수식 정리
 
-| 용어 | 정의 |
-|---|---|
-| P_L | LoG-based spawn probability (원본 OTF-NVS의 Laplacian of Gaussian) |
-| P̃_i | view i에서 rendered coverage probability (기존 Gaussian의 rendering) |
-| Cross-view P̃ | 9-view homography warp를 통한 P̃ aggregation |
-| P_s | spawn probability: `P_s = max(P_L - max_i[P̃_i(warp)], 0)` |
-| P_add | 특정 timestamp에서 실제로 추가되는 Gaussian 수 |
-| P_fin | 학습 수렴 후 최종 Gaussian 수 (DashGaussian momentum budgeting 대상) |
-| H_ij | view i→j homography: `K · R_ij · K⁻¹` (rel_t=0이므로 depth-independent) |
-| E_k^π | Revising Densification: view π에서 Gaussian k의 error attribution |
-| ĝ_i | AbsGS: homodirectional gradient `Σ_j |∂L_j/∂μ_i|` |
-| s_d^i | FastGS VCD: Gaussian i의 K-view 평균 high-error pixel 비율 |
-| ADC | Adaptive Density Control — 3DGS의 clone/split/prune 메커니즘 |
-| VCD | View-Consistent Densification (FastGS) |
-| VCP | View-Consistent Pruning (FastGS) |
-| SGLD | Stochastic Gradient Langevin Dynamics (3DGS-MCMC 기반) |
-| pyr_lvl | pyramid level: 0=풀해상도, 1=1/2 해상도 |
-| rig_R6D | 6D rotation 표현 (두 열벡터 + Gram-Schmidt) |
+| 용어            | 정의                                                                   |
+| ------------- | -------------------------------------------------------------------- |
+| P_L           | LoG-based spawn probability (원본 OTF-NVS의 Laplacian of Gaussian)      |
+| P̃_i          | view i에서 rendered coverage probability (기존 Gaussian의 rendering)      |
+| Cross-view P̃ | 9-view homography warp를 통한 P̃ aggregation                            |
+| P_s           | spawn probability: `P_s = max(P_L - max_i[P̃_i(warp)], 0)`           |
+| P_add         | 특정 timestamp에서 실제로 추가되는 Gaussian 수                                   |
+| P_fin         | 학습 수렴 후 최종 Gaussian 수 (DashGaussian momentum budgeting 대상)           |
+| H_ij          | view i→j homography: `K · R_ij · K⁻¹` (rel_t=0이므로 depth-independent) |
+| E_k^π         | Revising Densification: view π에서 Gaussian k의 error attribution       |
+| ĝ_i           | AbsGS: homodirectional gradient `Σ_j \| ∂L_j/∂μ_i \| `                 |
+| s_d^i         | FastGS VCD: Gaussian i의 K-view 평균 high-error pixel 비율                |
+| ADC           | Adaptive Density Control — 3DGS의 clone/split/prune 메커니즘              |
+| VCD           | View-Consistent Densification (FastGS)                               |
+| VCP           | View-Consistent Pruning (FastGS)                                     |
+| SGLD          | Stochastic Gradient Langevin Dynamics (3DGS-MCMC 기반)                 |
+| pyr_lvl       | pyramid level: 0=풀해상도, 1=1/2 해상도                                     |
+| rig_R6D       | 6D rotation 표현 (두 열벡터 + Gram-Schmidt)                                |
