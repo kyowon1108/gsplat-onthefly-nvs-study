@@ -2,14 +2,14 @@
 
 ## Executive Summary
 
-- Insta360 X5 EQR 기반 9-view virtual rig는 same optical center 를 공유하는 zero-baseline 구조이므로, same-timestamp views 는 depth/MVS/triangulation source 로 쓰지 않는다.
-- 위 제약을 반영하여 OTF 의 image-plane density control 을 **rig-spherical angular support 기반 candidate proposal** 로 재정의했다 (`spherical_stratified`).
-- 현재 260411 sequence 기준, `sph_strat 24k` 는 같은 rig-aware safety stack 위의 `legacy` density baseline 대비 **4.9× 적은 Gaussian, 2.1× 짧은 학습 시간, holdout PSNR +0.15 dB, ATE 0.0101 vs 0.0674** 를 기록했다.
-- 동일 budget 에서 confidence-only `full 12k` 는 MVS acceptance ratio 가 높음에도 angular bin 점유가 좁아 holdout 품질·trajectory 정확도가 낮았다.
-- 단일 sequence 결과이므로, 추가 scene 검증과 high-frequency detail refinement 가 다음 단계다.
+- Insta360 X5 EQR 기반 9-view virtual rig는 same optical center 를 공유하는 zero-baseline 구조이므로, same-timestamp views 는 depth/MVS/triangulation source 로 쓰지 않음.
+- 위 제약을 반영하여 OTF 의 image-plane density control 을 **rig-spherical angular support 기반 candidate proposal** 로 재정의함 (`spherical_stratified`).
+- 현재 260411 sequence 기준, `sph_strat 24k` 는 같은 rig-aware safety stack 위의 `legacy` density baseline 대비 **4.9× 적은 Gaussian, 2.1× 짧은 학습 시간, holdout PSNR +0.15 dB, Sim(3)-aligned ATE 0.0101 vs 0.0674** 를 기록함.
+- 동일 budget 에서 confidence-only `full 12k` 는 MVS acceptance ratio 가 높음에도 angular bin 점유가 좁아 holdout 품질·trajectory 정확도가 낮음.
+- 단일 sequence 결과이므로, 추가 scene 검증과 high-frequency detail refinement 가 다음 단계임.
 
-> 본 보고서의 `legacy` baseline 은 upstream OTF 를 그대로 실행한 결과가 아니라, 동일한 rig-aware pose/safety stack 위에서 `density_mode` 만 `legacy` 로 둔 비교군이다.
-> 이 보고서에서 main proposal 은 score-free `spherical_stratified` 이며, `RASP` 는 confidence mixture 의 필요성을 확인하기 위한 ablation 으로 둔다.
+> 본 보고서의 `legacy` baseline 은 upstream OTF 를 그대로 실행한 결과가 아니라, 동일한 rig-aware pose/safety stack 위에서 `density_mode` 만 `legacy` 로 둔 비교군임.
+> 이 보고서에서 main proposal 은 score-free `spherical_stratified` 이며, `RASP` 는 confidence mixture 의 필요성을 확인하기 위한 ablation 으로 둠.
 
 ---
 
@@ -24,7 +24,7 @@
 | 동시각 inter-view baseline  | 0 (rotation-only)                          |
 | 동시각 inter-view warp     | `H_ij = K · R_ij · K⁻¹` (depth-independent) |
 
-핵심 제약: 동시각 view 끼리는 translation 이 0 이므로 triangulation 으로 depth 를 얻을 수 없다. cross-timestamp keyframe 만 depth source 로 사용해야 하며, same-ts sibling 은 angular coverage / support signal 로만 사용된다.
+핵심 제약은 동시각 view 끼리 translation 이 0 이므로 triangulation 으로 depth 를 얻을 수 없다는 점임. depth source 는 cross-timestamp keyframe 으로 제한해야 하며, same-ts sibling 은 angular coverage / support signal 로만 사용함.
 
 ---
 
@@ -42,7 +42,8 @@
 | lifecycle    | opacity prune / coarse remove     | sanity drop + source-aware artifact prune                  |
 | stats        | limited                           | per-stage bin cascade · entropy · acceptance ratio        |
 
-마지막 두 행 (`proposal`, `stats`) 이 이번 일자의 신규 작업이며, 나머지는 이전 일일 보고서 (260427·260507·260508) 에서 단계적으로 정리된 내용을 동일한 파이프라인 위에서 함께 적용했다.
+- 마지막 두 행 (`proposal`, `stats`) 이 이번 일자의 핵심 변경임.
+- 특히 `proposal` 은 method 측면의 변화이고, `stats` 는 그 효과를 정량적으로 설명하기 위한 분석 장치임.
 
 ---
 
@@ -80,9 +81,9 @@ flowchart LR
     G --> H["Final primitive spawn"]
 ```
 
-- support: `init_proba > 0` (LoG-positive) 픽셀만 후보. downstream `1/√init_proba` 의 division-by-zero 차단.
-- bin: `r_cam = normalize(K⁻¹[u,v,1])`, `r_rig = rel_Rᵀ · r_cam`, `yaw = atan2(x,z)`, `pitch = atan2(−y, hypot(x,z))`. 수식은 Appendix A.
-- 기본 모드 `spherical_stratified`: 각 bin 내 uniform random pick. `rasp` 모드: `α·uniform + (1−α)·tempered/clipped confidence` 의 혼합 (ablation).
+- support: `init_proba > 0` (LoG-positive) 픽셀만 후보로 사용함. downstream `1/√init_proba` 의 division-by-zero 를 차단하기 위함.
+- bin: `r_cam = normalize(K⁻¹[u,v,1])`, `r_rig = rel_Rᵀ · r_cam`, `yaw = atan2(x,z)`, `pitch = atan2(−y, hypot(x,z))` 로 정의함. 수식은 Appendix A.
+- 기본 모드 `spherical_stratified`: 각 bin 내 uniform random pick. `rasp` 모드: `α·uniform + (1−α)·tempered/clipped confidence` 의 혼합이며 ablation 으로 둠.
 
 ---
 
@@ -103,7 +104,7 @@ flowchart LR
 
 ## 5. 결과
 
-3-seed mean ± std, iter=270. `group` 은 표를 어떻게 읽는지 표시한다.
+3-seed mean ± std, iter=270 기준임. `group` 은 표를 어떻게 읽는지 표시함.
 
 | config                | group | n_gauss |  holdout PSNR |          ATE rmse |        RPE rot° | rt (s) |
 | --------------------- | :---: | ------: | ------------: | ----------------: | --------------: | -----: |
@@ -123,56 +124,56 @@ flowchart LR
 | sph_strat 2×4 12k     |   C   |    154k |   18.43±0.33  |  0.0213±0.0077    |   0.073±0.055   |     80 |
 | **sph_strat 8×16 12k**|   C   |    159k | **18.97±0.04**|  0.0118±0.0022    |   0.046±0.008   |     81 |
 
-(각 group 의 best 는 굵게)
+group legend: `ref` = rig-aware legacy density baseline, `score` = score-map / image-space 비교군, `B` = `sph_strat` budget sweep, `rasp` = α=.50 budget sweep, `A` = RASP α sweep, `C` = spherical bin-count sweep 임. 각 group 의 best 는 굵게 표시함.
 
 ### 5.1 Pareto — PSNR / ATE vs n_gauss
 
 ![PSNR vs n_gauss](../video_picture/260511/psnr_vs_ngauss.png)
 
-- `sph_strat 24k` 는 legacy 보다 왼쪽 위 (적은 n_gauss + 높은 holdout PSNR) 에 위치한다.
-- `sph_strat 6k / 12k`, `rasp 6k / 12k` 등 lower-budget 구성은 legacy 보다 holdout PSNR 은 낮지만 4 ~ 10× 적은 Gaussian 으로 근접한 Pareto point 를 만든다.
+- `sph_strat 24k` 는 legacy 보다 왼쪽 위 (적은 n_gauss + 높은 holdout PSNR) 에 위치함.
+- `sph_strat 6k / 12k`, `rasp 6k / 12k` 등 lower-budget 구성은 legacy 보다 holdout PSNR 은 낮지만 4 ~ 10× 적은 Gaussian 으로 근접한 Pareto point 를 형성함.
 
 ![ATE vs n_gauss](../video_picture/260511/ate_vs_ngauss.png)
 
-- 세로축은 Sim(3) 정렬 후 OTF trajectory 와 COLMAP trajectory 의 ATE rmse (pose agreement metric).
-- legacy 의 ATE 가 0.067 부근에 따로 떠 있고, budgeted spherical / random / tile 군은 ATE 0.01 ~ 0.02 영역에 모여 있다.
-- `full 12k` 는 PSNR 뿐 아니라 ATE 도 다른 12k 군 대비 30 ~ 70 % 크다.
+- 세로축은 Sim(3) 정렬 후 OTF trajectory 와 COLMAP trajectory 의 ATE rmse 이며, reconstruction quality 자체가 아니라 pose agreement metric 으로 해석함.
+- legacy 의 ATE 가 0.067 부근에 따로 있고, budgeted spherical / random / tile 군은 ATE 0.01 ~ 0.02 영역에 모여 있음.
+- `full 12k` 는 PSNR 뿐 아니라 ATE 도 다른 12k 군 대비 30 ~ 70 % 큼.
 
 ### 5.2 Bin-occupancy cascade
 
 ![bin cascade](../video_picture/260511/bin_cascade.png)
 
 - 가로축: `selected_pre → after_mvs → after_occlusion → after_sanity → final` 5 단계.
-- 세로축: 4×8 rig-spherical partition (총 32 bins) 중 점유 bin 수, plan 평균.
-- `full 12k` 는 preselection 부터 평균 7.6 / 32 bins 만 점유하고 final 에서 6.3 / 32 로 감소한다. 다른 모드는 8.9 → 8.2 영역에서 거의 평행하게 유지된다.
-- 즉 `full` 의 약점은 후속 filter 에서의 손실보다, **preselection 자체의 angular 범위가 좁다는 것**임이 직접 드러난다.
+- 세로축: 4×8 rig-spherical partition (총 32 bins) 중 점유 bin 수의 plan 평균.
+- `full 12k` 는 preselection 부터 평균 7.6 / 32 bins 만 점유하고 final 에서 6.3 / 32 로 감소함. 다른 모드는 8.9 → 8.2 영역에서 거의 평행하게 유지됨.
+- 즉 `full` 의 약점은 후속 filter 에서의 손실보다, **preselection 자체의 angular 범위가 좁다는 것**으로 해석됨.
 
 ### 5.3 Coverage → Quality
 
 ![entropy vs holdout](../video_picture/260511/entropy_vs_holdout.png)
 
-- 4×8 bin 기준 raw entropy 와 holdout PSNR 사이에 양의 상관이 보인다.
-- bin 수가 다른 config (예: `sph_strat 8×16`) 를 같은 plot 에 올리면 entropy 상한이 달라 직접 비교가 어렵다. 후속 보고에서는 `H / ln(B)` 형태의 normalized entropy 가 필요하다.
+- 4×8 bin 기준 raw entropy 와 holdout PSNR 사이에 양의 상관이 보임.
+- bin 수가 다른 config (예: `sph_strat 8×16`) 를 같은 plot 에 올리면 entropy 상한이 달라 직접 비교가 어려움. 후속 보고에서는 `H / ln(B)` 형태의 normalized entropy 가 필요함.
 
 ---
 
 ## 6. 해석
 
 - `sph_strat 24k` 가 현재 260411 sequence 에서 legacy density baseline 대비 PSNR · ATE · RPE · n_gauss · runtime 5 가지 metric 에서 동시에 개선됨.
-- `full 12k` 의 acceptance ratio 는 0.482 로 spherical / random 군 (≈ 0.42) 보다 오히려 높지만 holdout PSNR 은 더 낮다. acceptance probability 만으로 holdout quality 를 설명하기 어렵다는 점이 bin cascade 와 함께 정량 확인된다.
-- RASP α sweep 결과 α 가 1 에 가까워질수록 (즉 score 비중 ↓) holdout PSNR · ATE 가 단조 개선된다. 현재 sequence / config 에서는 confidence-free support proposal 이 가장 좋은 Pareto 를 보였다.
-- bin granularity 도 lever 로 작동한다. 2×4 (coarse) → 4×8 → 8×16 으로 갈수록 holdout PSNR 이 향상되고 seed 분산이 감소한다 (8×16 에서 PSNR 분산 0.04).
+- `full 12k` 의 acceptance ratio 는 0.482 로 spherical / random 군 (≈ 0.42) 보다 오히려 높지만 holdout PSNR 은 더 낮음. acceptance probability 만으로는 holdout quality 를 설명하기 어려운 것으로 bin cascade 와 함께 정량 확인됨.
+- RASP α sweep 결과 α 가 1 에 가까워질수록 (즉 score 비중 ↓) holdout PSNR · ATE 가 단조 개선됨. 현재 sequence / config 에서는 confidence-free support proposal 이 가장 좋은 Pareto 를 보임.
+- bin granularity 도 lever 로 작동함. 2×4 (coarse) → 4×8 → 8×16 으로 갈수록 holdout PSNR 이 향상되고 seed 분산이 감소함 (8×16 에서 PSNR 분산 0.04).
 
 ---
 
 ## 7. 정성 결과
 
-직접 렌더 crop 을 비교했을 때 관찰된 경향이며, 정량적 quantification 은 추후 보고에서 다룬다.
+직접 렌더 crop 을 비교했을 때 관찰된 경향이며, 정량적 quantification 은 추후 보고에서 다룸.
 
 - 큰 구조 (건물, 나무 줄기, 하늘 색, 잔디 baseline) 는 legacy 와 거의 같은 수준으로 재현됨.
-- 잔가지, 나뭇잎, 솔잎, 벤치 슬랫, 바닥 돌 경계 같은 high-frequency thin detail 에서는 sph_strat 24k 가 legacy 보다 다소 부드럽게 blur 된다.
-- 단일 원인이 아니라 strict per-timestamp spawn budget + 균등 spherical support proposal 이 결합된 효과로 해석된다. 균등 support proposal 은 angular coverage 를 보존하지만 high-frequency residual 이 몰린 지점에 추가 budget 을 주지 않는다.
-- 다음 단계 방향은 base spherical support budget 위에 bounded high-frequency detail budget 을 얹는 구조다 (§8 표의 5번 항목).
+- 잔가지, 나뭇잎, 솔잎, 벤치 슬랫, 바닥 돌 경계 같은 high-frequency thin detail 에서는 sph_strat 24k 가 legacy 보다 다소 부드럽게 blur 됨.
+- 단일 원인이 아니라 strict per-timestamp spawn budget + 균등 spherical support proposal 이 결합된 효과로 해석됨. 균등 support proposal 은 angular coverage 를 보존하지만 high-frequency residual 이 몰린 지점에 추가 budget 을 주지 않음.
+- 다음 단계 방향은 base spherical support budget 위에 bounded high-frequency detail budget 을 얹는 구조임 (§8 표의 5번 항목).
 
 ---
 
@@ -190,7 +191,7 @@ flowchart LR
 
 ## 9. 결론
 
-현재 260411 sequence 기준으로, primitive proposal 을 image-plane density control 에서 rig-spherical angular support coverage 문제로 재정의했을 때 photometric quality · trajectory geometry · memory · runtime 의 Pareto 가 동시에 개선되는 것을 확인했다. 결과는 단일 sequence 기준이므로 추가 scene 과 fine-detail refinement (§8) 가 이어져야 한다.
+현재 260411 sequence 기준으로, primitive proposal 을 image-plane density control 에서 rig-spherical angular support coverage 문제로 재정의했을 때 photometric quality · trajectory geometry · memory · runtime 의 Pareto 가 동시에 개선되는 것을 확인함. 결과는 단일 sequence 기준이므로 추가 scene 과 fine-detail refinement (§8) 가 이어져야 함.
 
 ---
 
@@ -206,7 +207,7 @@ pitch_bin = clamp( floor((pitch + π/2) / π · n_bins_y), 0, n_bins_y − 1 )
 bin_id    = pitch_bin · n_bins_x + yaw_bin
 ```
 
-`rel_R` 정의: `rig/rig_loader.py:76`. 좌표계는 COLMAP + `_AXIS_FLIP = diag(1, −1, −1)` 컨벤션이라 camera-y 가 down 이며, pitch 계산에서 `−y` 를 사용한다.
+`rel_R` 정의: `rig/rig_loader.py:76`. 좌표계는 COLMAP + `_AXIS_FLIP = diag(1, −1, −1)` 컨벤션이라 camera-y 가 down 이며, pitch 계산에서 `−y` 를 사용함.
 
 검증 예: 260411 의 `High_Cam02`, `uv = (0, 0)` →
 `r_rig = [0.118, −0.864, −0.489]`, `yaw = +2.903`, `pitch = +1.042`
