@@ -1,8 +1,6 @@
 # 260512 - OTF rig vs COLMAP rig 3DGS 5-way 비교
 
 - 데이터셋: Insta360 X5 EQR -> 9 virtual pinhole view x 23 timestamp = 207 frame.
-- 기준 실험: `260511_5way_compare`.
-- OTF rig 비교군: `rasp_sph_strat_24k_s0`.
 - 30k 3DGS 변종은 모두 `gaussian-splatting/train.py --iterations 30000 --resolution 1` 로 학습함.
 
 ## 진행 방식 요약
