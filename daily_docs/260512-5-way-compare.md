@@ -53,19 +53,17 @@
 
 ## View 별 정성 비교
 
-아래 이미지는 기존 Markdown 표 안에 개별 이미지를 넣는 방식 대신, view 별로 하나의 composite grid PNG 를 만든 것임. 각 이미지가 동일한 셀 크기에 고정되어 있어 GitHub / VSCode / 브라우저에서 들쭉날쭉하게 보이지 않음.
-
 ### High_Cam01 - holdout-like 외곽 view
 
-![High_Cam01 5-way grid](../video_picture/260512/high_cam01_5way_grid.png)
+![High_Cam01 5-way grid](video_picture/260512/high_cam01_5way_grid.png)
 
 ### High_Cam07 - rig reference view
 
-![High_Cam07 5-way grid](../video_picture/260512/high_cam07_5way_grid.png)
+![High_Cam07 5-way grid](video_picture/260512/high_cam07_5way_grid.png)
 
 ### Low_Cam02 - Low row 측면 view
 
-![Low_Cam02 5-way grid](../video_picture/260512/low_cam02_5way_grid.png)
+![Low_Cam02 5-way grid](video_picture/260512/low_cam02_5way_grid.png)
 
 ## 해석
 

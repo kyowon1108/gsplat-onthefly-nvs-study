@@ -11,6 +11,13 @@
 > 본 보고서의 `legacy` baseline 은 upstream OTF 를 그대로 실행한 결과가 아니라, 동일한 rig-aware pose/safety stack 위에서 `density_mode` 만 `legacy` 로 둔 비교군임.
 > 이 보고서에서 main proposal 은 score-free `spherical_stratified` 이며, `RASP` 는 confidence mixture 의 필요성을 확인하기 위한 ablation 으로 둠.
 
+### 2026-05-13 update
+
+- `rig/main` 최신 안정화 패치(`c3a7409`) 기준으로 rotation-jump reject 기록, live camera-centre baseline check, density-stat field 를 정리함.
+- 이 패치는 새로운 method 를 추가한 것이 아니라, 실패 분석과 ablation 해석을 더 정확하게 만들기 위한 안정화 패치임.
+- 현재 rig path 는 timestamp-shared pose constraint 는 갖지만, global BA / pose graph / loop closure 는 포함하지 않음. 따라서 본 보고서의 claim 은 "drift-free" 가 아니라 "zero-baseline rig 에 맞춘 support-aware primitive proposal" 로 제한함.
+- `artifact_prune`, `hard_phys`, `rotation jump guard` 는 main contribution 이 아니라 streaming 안정화를 위한 guard 로 해석함.
+
 ---
 
 ## 1. 문제 정의
@@ -39,7 +46,7 @@
 | spawn 단위    | per-view (spawn order dependence) | atomic per-timestamp spawn                                |
 | spawn 정책   | LoG / Bernoulli density           | per-timestamp budget proposal                              |
 | proposal     | image-plane LoG sampling          | **rig-spherical stratified proposal (이번 보고서 main)**     |
-| lifecycle    | opacity prune / coarse remove     | sanity drop + source-aware artifact prune                  |
+| lifecycle    | opacity prune / coarse remove     | sanity drop + source-aware artifact prune (stability guard) |
 | stats        | limited                           | per-stage bin cascade · entropy · acceptance ratio        |
 
 - 마지막 두 행 (`proposal`, `stats`) 이 이번 일자의 핵심 변경임.
@@ -97,6 +104,8 @@ flowchart LR
 | seeds               | 0, 1, 2 (표는 mean ± std)                                                                       |
 | reference geometry  | `/opt/ftp/files/260411/colmap_result/sparse/0` (Sim(3) alignment 후 ATE / RPE)                  |
 | safety stack (공통) | atomic spawn · same-ts exclude (MVS·triang) · spawn-time geometry 캡 · artifact prune · oversample 4× · no coarse remove |
+
+주의: 위 safety stack 은 streaming 안정화를 위한 구현 조건이며, 논문 contribution 은 `same-ts depth misuse 제거` 와 `rig-spherical support-aware proposal` 쪽으로 해석함. 현재 rig path 에는 global BA / pose graph / loop closure 형태의 drift 재분배 module 이 없음.
 
 전체 명령 라인 옵션은 Appendix C.
 
@@ -186,6 +195,7 @@ group legend: `ref` = rig-aware legacy density baseline, `score` = score-map / i
 | 3 | normalized entropy plot (`H / ln B`) | bin count 가 다른 config 간 공정 비교 |
 | 4 | qualitative crop grid (260507 형식) | fine-detail blur 한계 시각화 |
 | 5 | `sph_strat_detail` 모드 | base spherical support + bounded high-frequency residual detail budget |
+| 6 | 추가 scene / translational holdout | 단일 sequence 및 same-center angular holdout 한계 보완 |
 
 ---
 
@@ -225,7 +235,7 @@ bin_id    = pitch_bin · n_bins_x + yaw_bin
 | `compare/rasp_<tag>_s<seed>/metrics.json` | Sim(3) 정렬 후 ATE / RPE per run |
 | `results/rasp_<tag>_s<seed>/density_stats.jsonl` | per-plan bin cascade · acceptance ratio · K_pre |
 
-git: branch `main`, head `ac489e5` (이번 일자 작업 모두 merge).
+git: branch `main`, head `c3a7409` (260513 안정화 패치 반영).
 
 ## Appendix C. 공통 옵션
 
@@ -245,7 +255,9 @@ git: branch `main`, head `ac489e5` (이번 일자 작업 모두 merge).
 --spawn_budget_per_ts <K>                 # 6000 / 12000 / 24000
 --spawn_spherical_bins_y 4 --spawn_spherical_bins_x 8
 --rig_holdout_view High_Cam01
---num_iterations 270 --enable_reboot --lr_poses 1e-4
+--num_iterations 270 --lr_poses 1e-4
 --depth_loss_floor_ratio 0.1
 --viewer_mode none --log_density_stats
 ```
+
+`--enable_reboot` 는 현재 코드에서 monocular path 용 옵션이며, rig path 의 global reboot / pose graph / loop closure 를 의미하지 않으므로 rig main recipe 에서 제외함.
