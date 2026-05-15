@@ -30,8 +30,8 @@
 |---:|---|---|---|---|
 | 1 | GT | - | - | 원본 이미지 |
 | 2 | COLMAP rig 3DGS 30k | COLMAP rig | COLMAP triangulated | 기존 30k batch 3DGS baseline |
-| 3 | OTF->3DGS (B) | Sim(3)-aligned OTF | OTF triangulated | OTF rig 결과를 COLMAP 좌표계로 정렬한 뒤 30k batch 3DGS 학습 |
-| 4 | Cross COLMAP pose + OTF points (C) | COLMAP rig | OTF triangulated | pose 는 COLMAP 으로 고정하고 point init 만 OTF 로 교체 |
+| 3 | OTF->3DGS (B) | Sim(3)-aligned OTF | COLMAP triangulated | OTF rig 결과를 COLMAP 좌표계로 정렬한 뒤 30k batch 3DGS 학습 |
+| 4 | Cross COLMAP pose + OTF points (C) | COLMAP rig | COLMAP triangulated | pose 는 COLMAP 으로 고정하고 point init 만 OTF 로 교체 |
 | 5 | Cross OTF pose + COLMAP points (D) | Sim(3)-aligned OTF | COLMAP triangulated | point init 은 COLMAP 으로 두고 pose 만 OTF 로 교체 |
 | 6 | OTF rig native (E) | OTF rig | streaming GS | batch 3DGS 를 거치지 않은 실제 OTF streaming 결과 |
 
@@ -55,15 +55,15 @@
 
 ### High_Cam01 - holdout-like 외곽 view
 
-![High_Cam01 5-way grid](video_picture/260512/high_cam01_5way_grid.png)
+![High_Cam01 5-way grid](../video_picture/260512/high_cam01_5way_grid.png)
 
 ### High_Cam07 - rig reference view
 
-![High_Cam07 5-way grid](video_picture/260512/high_cam07_5way_grid.png)
+![High_Cam07 5-way grid](../video_picture/260512/high_cam07_5way_grid.png)
 
 ### Low_Cam02 - Low row 측면 view
 
-![Low_Cam02 5-way grid](video_picture/260512/low_cam02_5way_grid.png)
+![Low_Cam02 5-way grid](../video_picture/260512/low_cam02_5way_grid.png)
 
 ## 해석
 

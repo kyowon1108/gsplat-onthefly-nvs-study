@@ -74,11 +74,11 @@
 
 ### 핵심 비교: legacy vs confidence-only vs rig-spherical support
 
-![confidence vs support](../video_picture/260513/confidence_vs_support_grid.png)
+![confidence vs support](/video_picture/260513/confidence_vs_support_grid.png)
 
 ### 5개 방식 비교
 
-![method comparison](../video_picture/260513/method_comparison_grid.png)
+![method comparison](/video_picture/260513/method_comparison_grid.png)
 
 정성적으로는 `full 12k` 가 구조적으로 흐려지는 구간이 있고, `sph_strat 24k` 는 전체 구조와 하늘 / 건물 / 나무 trunk 의 정합성이 안정적임. 다만 잔가지, 나뭇잎, 바닥 돌 경계처럼 high-frequency thin detail 에서는 legacy 가 여전히 더 날카로운 경우가 있음.
 
