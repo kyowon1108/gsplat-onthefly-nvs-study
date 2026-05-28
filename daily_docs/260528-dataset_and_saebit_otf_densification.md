@@ -24,15 +24,15 @@
 
 #### center1 - smooth reference sequence
 
-![center1 official trajectory](video_picture/260528/trajectory_360roam/trajectory_center1.png)
+![center1 official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_center1.png)
 
 #### bar - main-subsequence only, disclose coverage
 
-![bar official trajectory](video_picture/260528/trajectory_360roam/trajectory_bar.png)
+![bar official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_bar.png)
 
 #### office - not suitable for full-sequence OTF evaluation
 
-![office official trajectory](video_picture/260528/trajectory_360roam/trajectory_office.png)
+![office official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_office.png)
 
 ### 1.3 결론
 
@@ -63,7 +63,7 @@
 |   0-59 |                 2.879 m |                  7.827 | ts 50-60 large-motion cluster 후 scale drift 증가 |
 |   0-94 |                 4.635 m |                 16.255 | full sequence 누적 drift / global inconsistency  |
 
-![center1 prefix ATE and scale curve](video_picture/260528/center1_prefix_ate_scale_curve.png)
+![center1 prefix ATE and scale curve](../../video_picture/260528/center1_prefix_ate_scale_curve.png)
 
  
  - ts 22 active-window cap을 지난 직후에는 ATE와 scale이 비교적 완만하게 유지되지만,
@@ -79,7 +79,7 @@
 | catastrophic drift의 직접 trigger는 무엇인가? | center1에서는 ts 50-60의 큰 motion cluster에서 incremental pose scale이 크게 틀어진 것이 직접 trigger로 보임. |
 | active window가 그 drift를 고쳤나?          | 아니오. 다음 §3의 pose movement log 기준, stochastic revisit이 old pose를 local BA처럼 의미 있게 움직이지 못함. |
 
-![center1 full-sequence trajectory overlay](video_picture/260528/center1_trajectory_full_sim3_overlay.png)
+![center1 full-sequence trajectory overlay](../../video_picture/260528/center1_trajectory_full_sim3_overlay.png)
 
 ---
 
@@ -166,9 +166,9 @@ center1에서 `--log_pose_movement`로 각 incremental timestamp의 270 iteratio
 
 #### Figure 1. GT / OTF / 3DGS densification OFF / ON 비교
 
-![saebit holdout comparison](video_picture/260528/saebit_holdout_gt_otf_3dgs.png)
+![saebit holdout comparison](../../video_picture/260528/saebit_holdout_gt_otf_3dgs.png)
 
-![](video_picture/260528/confidence_artifact_crops.png)
+![](../../video_picture/260528/confidence_artifact_crops.png)
 - OTF baseline, 3DGS densification OFF, 3DGS densification ON 모두 같은 holdout view에서 렌더함.
 
 | 열                      | 무엇을 보여주나                                                         | 해석                                                                               |
@@ -257,7 +257,7 @@ OTF의 새 Gaussian은 크게 두 경로에서 생김.
 
 ### 6.1 COLMAP 공식 360 panorama SfM 방식
 
-![](video_picture/260528/colmap_docs_eqr.png)
+![](../../video_picture/260528/colmap_docs_eqr.png)
 - https://colmap.github.io/rigs.html#reconstruction-from-360-spherical-images
 
 | 항목           | 공식 문서 기준 내용                                                     | 우리 상황과의 연결                                  |
@@ -307,27 +307,27 @@ OTF의 새 Gaussian은 크게 두 경로에서 생김.
 
 360Roam의 모든 scene은 같은 방식으로 official `pose_c2w.json` train trajectory를 시각화함.
 
-![base official trajectory](video_picture/260528/trajectory_360roam/trajectory_base.png)
+![base official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_base.png)
 
-![cafe official trajectory](video_picture/260528/trajectory_360roam/trajectory_cafe.png)
+![cafe official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_cafe.png)
 
-![canteen official trajectory](video_picture/260528/trajectory_360roam/trajectory_canteen.png)
+![canteen official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_canteen.png)
 
-![center official trajectory](video_picture/260528/trajectory_360roam/trajectory_center.png)
+![center official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_center.png)
 
-![corridor official trajectory](video_picture/260528/trajectory_360roam/trajectory_corridor.png)
+![corridor official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_corridor.png)
 
-![innovation official trajectory](video_picture/260528/trajectory_360roam/trajectory_innovation.png)
+![innovation official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_innovation.png)
 
-![lab official trajectory](video_picture/260528/trajectory_360roam/trajectory_lab.png)
+![lab official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_lab.png)
 
-![library official trajectory](video_picture/260528/trajectory_360roam/trajectory_library.png)
+![library official trajectory](../../video_picture/260528/trajectory_360roam/trajectory_library.png)
 
 ## Appendix B. Center1 prefix trajectory diagnostic
 
 - center1 trajectory를 prefix별로 잘라 각각 독립적으로 Sim(3) 정렬한 결과임.
 
-![center1 prefix Sim3 overlays](video_picture/260528/center1_trajectory_prefix_sim3_overlays.png)
+![center1 prefix Sim3 overlays](../../video_picture/260528/center1_trajectory_prefix_sim3_overlays.png)
 
 0-29와 0-49에서는 OTF trajectory가 official trajectory와 비교적 잘 맞지만,
 0-59부터 끝부분 drift가 커지고, 0-94에서는 전체 trajectory inconsistency가 커짐.
