@@ -1,162 +1,196 @@
-# 260515 - OTF rig 품질 gap 분해 중간 경과
+# 260515 - OTF Rig 품질 차이 원인 분해 및 다음 실험 방향
 
 - 데이터셋: Insta360 X5 EQR -> 9 virtual pinhole view x 23 timestamp = 207 frame.
-- 목적: native OTF rig 결과가 batch 3DGS 대비 낮게 나오는 원인을 **spawn / past-keyframe optimization / pose / point initialization** 으로 나누어 확인함.
-- 2026-05-15 기준 진행 경과를 정리한 중간 보고.
+- 기준 평가: 지침서 기준에 맞춰 207 frame 전체를 render 한 reconstruction metric 을 주 기준으로 사용함.
 
-## 진행 방식 요약
+ **품질 차이 원인 분해**, **pose / 초기 3D point 영향 분리**, **confidence signal prototype**을 현재 결과 기준으로 정리함.
 
-기존에 혼동이 있었던 5-way 비교 표현을 먼저 정정하고, native OTF 품질 저하의 원인을 분해하는 방향으로 실험을 진행함.
+---
 
-현재 기준 baseline 은 **legacy Bernoulli OTF native** 임. 즉, 이전에 실험했던 RASP / sph_strat / random / tile selection 을 main method 로 두지 않고, 원본 OTF 계열의 spawn 흐름 위에서 원인을 다시 확인하는 방향임.
+## 1. 한눈에 보는 답변
 
-본 문서의 metric 표기는 다음 기준으로 사용함.
+| 질문                                                     | 현재 답                                                                             |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Gaussian을 더 많이 만들면 품질 차이가 줄어드는가?                       | 아니오. accepted Gaussian 수는 약 2.7배 늘었지만 reconstruction PSNR은 오르지 않았음.              |
+| 지침서의 past-keyframe sliding-window refinement는 바로 가능한가? | 현재 optimizer에서는 불안정함. rig timestamp packet 단위로 구현하면 scaling explosion으로 완주하지 못함. |
+| pose가 주된 원인인가?                                         | 일부 영향은 있음. OTF pose 사용 시 약 -0.39 dB 손실이 있으나 전체 품질 차이를 설명하지는 못함.                  |
+| 초기 3D point / Gaussian center가 주된 원인인가?                | 거의 아님. OTF Gaussian center도 offline 3DGS 초기점으로 잘 수렴함.                            |
+| confidence signal은 쓸 만한가?                              | 그렇다. Gradient EMA가 가장 강한 단일 신호이고, visibility 계열 신호와 일부 독립적임.                     |
+| 다음 실험 방향은?                                             | 단순 생성량 증가보다 gradient 기반 refinement 신호와 visibility 신호를 결합한 선택 정책이 더 타당함.          |
 
-| 용어 | 의미 |
+---
+
+## 2. 지침서 요청과 본 문서의 대응
+
+| 지침서 요청                      | 본 문서 처리                                                                     |
+| --------------------------- | --------------------------------------------------------------------------- |
+| 6 dB 품질 차이 분해               | Gaussian 생성 강도 증가와 rig timestamp packet 단위 sliding-window refinement 결과로 정리 |
+| 5-way 3-seed 평균과 표준편차       | pose / 초기 3D point 영향 분리 표로 정리                                              |
+| confidence signal prototype | gradient EMA, rendering visibility count, cross-view visibility 결과로 정리      |
+
+
+---
+
+## 3. 실험 조건 정의
+
+| 조건                                                | 의미                                                                                             | 검증 질문                              |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 기본 streaming 결과                                   | 현재 OTF rig 기본 설정. 원본 OTF식 LoG 기반 Bernoulli Gaussian 생성 사용                                      | 기준선                                |
+| Gaussian 생성 강도 증가                                 | Gaussian 생성 확률을 높여 accepted Gaussian 수를 늘림                                                     | 생성 수 부족이 원인인가?                     |
+| rig timestamp packet 단위 sliding-window refinement | 현재 timestamp의 train view 전체와 과거 5~10개 timestamp packet 일부 train view를 같은 optimization step에 반영 | past-keyframe refinement 부재가 원인인가? |
+
+여기서 **timestamp packet**은 같은 timestamp에서 생성된 rig의 train view 묶음을 의미함. 본 데이터에서는 holdout view를 제외하면 보통 8개 train view가 하나의 packet을 이룸.
+
+---
+
+## 4. 품질 차이 원인 분해 결과
+
+아래 표는 seed 0, 1, 2 실행 결과의 평균 ± 표준편차임.
+
+| 실험 조건 | post-hoc PSNR | holdout PSNR | 평균 accepted Gaussian 생성 수 | 판정 |
+|---|---:|---:|---:|---|
+| 기본 streaming 결과 | 21.046 ± 0.087 | 19.236 ± 0.115 | 29,825 ± 383 | 기준 |
+| Gaussian 생성 강도 2배 증가 | 20.902 ± 0.095 | 19.206 ± 0.077 | 52,121 ± 723 | 생성 수는 증가했지만 품질 개선 없음 |
+| Gaussian 생성 강도 4배 증가 | 20.616 ± 0.171 | 18.884 ± 0.230 | 81,974 ± 1,075 | 생성 수는 더 증가했지만 품질은 악화 |
+
+**해석**
+
+- Gaussian 생성 강도를 높이면 accepted Gaussian 수는 크게 늘어남.
+- 그러나 reconstruction PSNR은 개선되지 않음.
+- 따라서 현재 결과만 보면, 품질 차이의 주된 원인을 단순 Gaussian 생성 수 부족으로 보기는 어려움.
+
+---
+
+## 5. Rig Timestamp Packet 단위 Sliding-Window Refinement
+
+지침서의 "이전 5~10 keyframe"은 rotation-only rig 환경에서는 개별 pinhole image 1장이 아니라, **한 timestamp의 rig packet**으로 보는 것이 더 자연스러움. 따라서 본 실험은 다음 의미로 수행됨.
+
+| 항목 | 구현 의미 |
 |---|---|
-| holdout PSNR | `High_Cam01` holdout-like view 기준 평가 |
-| post-hoc PSNR | 학습 종료 후 207 frame 전체를 다시 render 하여 계산한 reconstruction metric |
-| batch 3DGS PSNR | 30k 3DGS reconstruction / train metric. unseen trajectory generalization 으로 해석하지 않음 |
+| 현재 step | 현재 timestamp의 train view 전체를 render 하고, 평균 photometric loss를 계산 |
+| 과거 window | 현재 timestamp 이전 5개 또는 10개 timestamp packet |
+| 과거 packet 사용 | 각 과거 timestamp packet에서 train view 2개 또는 4개를 선택 |
+| pose 처리 | 과거 replay loss는 pose gradient에 반영하지 않음 |
+| update 대상 | 현재 packet과 과거 packet에서 보이는 Gaussian을 함께 update 대상으로 사용 |
+| 성격 | 전체 sequence를 다시 푸는 global bundle adjustment가 아니라, streaming 제약 안의 local photometric refinement |
 
-## 1. 기존 5-way 비교 표현 정정
+안전장치를 끈 상태에서 아래 조건은 모두 iter=270 학습 중 scaling explosion으로 종료됨.
 
-이전 문서에서 "OTF points" 라고 표현했던 부분은 부정확했음. 현재 OTF export 는 `cameras.bin` / `images.bin` 만 저장하고, `points3D.bin` 은 비어 있음. 따라서 OTF 결과에서 직접 나온 COLMAP-style point cloud 를 썼다고 말하면 안 됨.
+| 조건                                                                    | 결과    |                         붕괴 시점 | scaling.max |
+| --------------------------------------------------------------------- | ----- | ----------------------------: | ----------: |
+| 현재 timestamp packet 전체만 사용                                            | crash | keyframe 99 / timestamp 11 부근 |         165 |
+| 현재 timestamp packet 전체 + 과거 5 timestamp, 각 timestamp 당 train view 2개  | crash | keyframe 99 / timestamp 11 부근 |         232 |
+| 현재 timestamp packet 전체 + 과거 5 timestamp, 각 timestamp 당 train view 4개  | crash | keyframe 99 / timestamp 11 부근 |         480 |
+| 현재 timestamp packet 전체 + 과거 10 timestamp, 각 timestamp 당 train view 2개 | crash | keyframe 99 / timestamp 11 부근 |         408 |
 
-| 표현 | 정확한 의미 | 비고 |
+**해석**
+
+- 과거 packet을 쓰지 않고 현재 timestamp packet 전체만 사용해도 crash가 발생함.
+- 따라서 원인은 과거 replay 자체라기보다, 여러 view의 loss와 visibility를 한 step에 묶는 update 구조가 현재 optimizer 설정과 맞지 않는 데 있음.
+- 이 결과는 지침서의 sliding-window refinement 방향이 중요하지 않다는 뜻이 아니라, 현재 optimizer로는 packet-level multi-view update를 바로 적용하기 어렵다는 뜻임.
+
+---
+
+## 6. Pose와 초기 3D Point 영향 분리
+
+아래 표는 seed 0, 1, 2 기준 평균 ± 표준편차임. COLMAP pose + COLMAP sparse point는 기준값으로 사용함.
+
+| 비교 조건 | pose | 초기 3D point | 초기점 수 | 30,000 iter PSNR | COLMAP 기준 대비 |
+|---|---|---|---:|---:|---:|
+| COLMAP pose + COLMAP sparse point | COLMAP rig pose | COLMAP mapper sparse point | 41,678 | 26.488 | - |
+| COLMAP pose + OTF Gaussian 중심점 | COLMAP rig pose | OTF Gaussian 중심점 중 41,678개 sampling | 41,678 | 26.389 ± 0.046 | -0.10 ± 0.05 |
+| OTF pose + COLMAP sparse point | scale / rotation / translation 정렬된 OTF pose | COLMAP mapper sparse point | 41,678 | 26.099 ± 0.070 | -0.39 ± 0.07 |
+| OTF pose + OTF Gaussian 중심점 | scale / rotation / translation 정렬된 OTF pose | OTF Gaussian 중심점 중 41,678개 sampling | 41,678 | 26.114 ± 0.064 | -0.38 ± 0.06 |
+
+OTF Gaussian 중심점 기반 초기화는 OTF Gaussian의 **중심 위치**를 count-matched sparse initialization으로 사용한 것임. Scale / opacity / spherical harmonics를 그대로 재사용한 것은 아님.
+
+| 비교                   |               결과 | 해석                                                             |
+| -------------------- | ---------------: | -------------------------------------------------------------- |
+| 초기 3D point 영향       |  -0.10 ± 0.05 dB | OTF Gaussian 중심점은 offline 3DGS 초기점으로 거의 손색 없음                  |
+| pose 영향              |  -0.39 ± 0.07 dB | OTF pose는 손실을 만들지만, streaming 품질 차이 전체를 설명하지는 못함               |
+| OTF pose 조건에서 초기점 교체 | 26.099 vs 26.114 | 같은 OTF pose에서는 COLMAP sparse point와 OTF Gaussian 중심점 차이가 거의 없음 |
+
+**해석**
+
+- OTF Gaussian 중심점 geometry는 큰 실패로 보기 어려움.
+- OTF pose는 초기점보다 더 큰 영향을 주지만, offline 3DGS에서 26 dB 이상으로 수렴하므로 전체 품질 차이의 주된 원인으로 보기는 어려움.
+- 따라서 남는 핵심 원인은 streaming 중 제한된 최적화, Gaussian lifecycle, selective refinement 정책 쪽임.
+
+---
+
+## 7. Confidence Signal Prototype 결과
+
+지침서에서 요청한 세 confidence signal은 아래 의미로 측정함.
+
+| 신호 | 의미 | 해석 목적 |
 |---|---|---|
-| OTF pose | native OTF 가 추정한 camera pose 를 COLMAP frame 으로 Sim(3) 정렬한 것 | pose-only export |
-| OTF-pose re-triangulated points | OTF pose 를 고정하고 COLMAP database / matches 로 다시 triangulate 한 sparse points | COLMAP feature track 기반 |
-| OTF Gaussian-center init | OTF 가 학습한 Gaussian center 를 `points3D.ply` 형태로 변환한 3DGS 초기점 | COLMAP sparse reconstruction 은 아님 |
+| Gradient EMA | 각 Gaussian의 position / scaling gradient magnitude의 exponential moving average | 아직 더 학습이 필요한 Gaussian을 찾기 위한 parameter-side 신호 |
+| Rendering visibility count | 각 Gaussian이 rendering 과정에서 보인 횟수 | 실제 output에 자주 관여하는 Gaussian을 찾기 위한 visibility-side 신호 |
+| Cross-view visibility | 같은 timestamp의 다른 rig view에서 이미 보이는 정도 | rig multi-view coverage를 반영하기 위한 geometry-side 신호 |
 
-따라서 오늘의 batch 3DGS 비교는 "OTF points" 검증이 아니라, **OTF pose** 와 **OTF Gaussian-center initialization** 이 batch 3DGS 에서 얼마나 회복 가능한지를 보는 실험으로 정리함.
+신호 로깅을 켠 baseline의 holdout PSNR은 `19.32 ± 0.18`이고, 기본 streaming 결과는 `19.236 ± 0.115`임. 따라서 signal logging 자체가 학습 동작을 크게 바꾸지 않는 것으로 봄.
 
-## 2. E0 / E1 / E2 / E3: streaming gap 분해
+### 신호 간 독립성
 
-### 비교군 정의
+아래 표는 seed 0, 1, 2의 Spearman rank correlation 평균임. 값이 낮을수록 두 신호가 서로 다른 정보를 담는다고 해석할 수 있음.
 
-| Cell | 설정 | 검증 질문 |
-|---|---|---|
-| E0 | legacy Bernoulli OTF native, `init_proba_scaler=2` | 현재 streaming baseline |
-| E1 | Bernoulli intensity 증가, `init_proba_scaler=4/8` | 단순히 더 많이 spawn 하면 품질이 회복되는가 |
-| E2-a | past-keyframe sliding-window replay loss 추가 | 과거 keyframe 을 다시 최적화하면 품질이 회복되는가 |
-| E2-b | 최근 keyframe 만 replay pool 로 bias | 최근 view 중심으로 학습하면 도움이 되는가 |
-| E3 | E2-a + E1 scaler 증가 | spawn 증가와 replay 가 additive 하게 작동하는가 |
+|  | Gradient EMA | Rendering visibility count | Cross-view visibility |
+|---|---:|---:|---:|
+| Gradient EMA | 1.000 | 0.372 | 0.151 |
+| Rendering visibility count | 0.372 | 1.000 | 0.643 |
+| Cross-view visibility | 0.151 | 0.643 | 1.000 |
 
-여기서 E1 은 RASP 식 top-K spawn budget 실험이 아님. legacy Bernoulli 확률 강도를 키워 accepted spawn 수가 늘어날 때 품질이 같이 오르는지 확인한 실험임.
+**해석**
 
-교수님 지시서의 E1 은 당시 260512 문서의 RASP / sph_strat 24k setting 을 기준으로 spawn budget 을 늘리는 형태였음. 다만 이번 정정 후 E0 baseline 을 legacy Bernoulli OTF native 로 다시 잡았기 때문에, 본 문서의 E1 은 top-K budget K 를 늘리는 실험이 아니라 Bernoulli sampling intensity 를 높여 accepted spawn 수가 실제로 증가하는지 보는 corrected E1-proxy 로 수행함.
+- Gradient EMA와 cross-view visibility는 상관이 낮아 서로 다른 정보를 담음.
+- Gradient EMA와 rendering visibility count는 약한 상관으로, 함께 쓸 여지가 있음.
+- Rendering visibility count와 cross-view visibility는 상관이 높아 둘 다 넣으면 정보가 중복될 가능성이 큼.
 
-### E1 결과
+### Final Opacity와의 상관
 
-| config | init_proba_scaler | mean n_total_new | final n_gauss | holdout PSNR | post-hoc PSNR | SSIM | LPIPS | runtime | crash |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| E0 | 2 | 29,912 | 937k | 19.23 | 20.93 | 0.655 | 0.387 | 156s | no |
-| E1a | 4 | 52,389 | 1,258k | 19.11 | 20.81 | 0.652 | 0.390 | 195s | no |
-| E1b | 8 | 81,558 | 1,631k | 18.56 | 20.39 | 0.633 | 0.406 | 243s | no |
+Final opacity는 Gaussian이 최종적으로 살아남아 rendering에 기여하는 정도를 보는 proxy임. 품질의 직접 측정은 아니지만, confidence signal이 의미 있는 Gaussian을 가리키는지 확인하는 1차 기준으로 사용함.
 
-accepted spawn 수는 약 2.7배까지 증가했지만, PSNR 은 회복되지 않고 오히려 낮아짐. 따라서 현재 sequence 에서는 단순히 Gaussian 수를 많이 늘리는 것만으로 batch 3DGS 와의 gap 을 줄이기 어렵다고 판단함.
+| 신호 | final opacity와의 Spearman correlation | seed별 범위 |
+|---|---:|---:|
+| Gradient EMA | +0.564 | 0.558-0.574 |
+| Rendering visibility count | +0.498 | 0.492-0.504 |
+| Cross-view visibility | +0.383 | 0.376-0.387 |
 
-### E2 / E3 결과
+**해석**
 
-| config | knob | n_total_new | n_gauss | holdout PSNR | post-hoc PSNR | SSIM | LPIPS | n_opt_total | runtime | crash |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| E0 | scaler=2 | 29,912 | 937k | 19.23 | 20.93 | 0.655 | 0.387 | 3,949 | 156s | no |
-| E2-a w=5 | replay loss window=5 | 28,996 | 951k | 19.60 | 21.41 | 0.678 | 0.371 | 8,247 | 236s | no |
-| E2-a w=10 | replay loss window=10 | 29,549 | 978k | 19.62 | 21.34 | 0.678 | 0.370 | 8,257 | 243s | no |
-| E2-a w=15 | replay loss window=15 | 29,255 | 937k | 19.61 | 21.30 | 0.674 | 0.374 | 8,250 | 243s | no |
-| E2-b w=5 | replay-bias only | 27,843 | 927k | 16.54 | 18.31 | 0.516 | 0.449 | 3,933 | 152s | no |
-| E3 | E2-a w=10 + scaler=4 | 51,677 | 1,307k | 19.40 | 21.18 | 0.672 | 0.374 | 8,257 | 309s | no |
+- 세 신호 모두 final opacity와 양의 상관을 보임.
+- 단일 신호로는 Gradient EMA가 가장 강함.
+- Rendering visibility count와 cross-view visibility는 둘 다 visibility 계열이라 중복성이 큼.
+- 따라서 다음 confidence score는 세 신호를 모두 같은 비중으로 넣기보다, **Gradient EMA + visibility 계열 신호 하나**를 결합하는 방향이 더 합리적임.
 
-E2-a 는 full sliding-window BA 가 아니라, step 수는 270으로 유지한 채 각 optimization step 에 window 내 과거 train keyframe 1개를 stochastic replay loss 로 추가한 lightweight approximation 임. 따라서 아래 결과는 "window BA 전체 효과"가 아니라, past-view photometric replay 를 추가했을 때의 1차 효과로 해석함.
+### 한계
 
-E2-a 는 E0 대비 약 +0.4~0.5 dB 개선을 보임. 따라서 past-keyframe replay 는 실제로 도움이 되는 lever 임. 다만 window 를 5에서 10, 15로 늘려도 추가 개선은 거의 없었고, E3 에서 spawn 증가와 결합해도 E2-a 단독보다 좋아지지 않았음.
+- Gradient EMA의 절대값은 매우 작으므로, score에 직접 넣기 전 정규화가 필요함.
+- Final opacity는 품질 proxy일 뿐, holdout PSNR 기여도를 직접 측정한 것은 아님.
+- Rendering visibility count는 rendering contribution의 저비용 proxy이므로, alpha contribution까지 직접 누적한 신호와는 구분해야 함.
 
-현재 해석은 다음과 같음.
+---
 
-| 관찰 | 해석 |
-|---|---|
-| spawn intensity 증가만으로 PSNR 회복 없음 | 단순 spawn 수 부족이 dominant 원인이라고 보기 어려움 |
-| replay loss 는 +0.4~0.5 dB 개선 | 과거 keyframe 재최적화는 도움됨 |
-| replay window 5 이후 거의 flat | 멀리까지 보는 것보다 추가 photometric update 자체가 중요함 |
-| replay-bias only 는 크게 악화 | 최근 keyframe 만 보면 오래된 view 가 충분히 검증되지 못함 |
-| E3 는 additive 하지 않음 | spawn 증가와 일반 replay 를 단순 결합하는 방식은 충분하지 않음 |
-
-## 3. Pose / point initialization batch 3DGS audit
-
-### 목적
-
-OTF native 품질 저하가 pose 자체의 실패인지, OTF 가 만든 Gaussian geometry 의 실패인지, 아니면 streaming-time optimization 문제인지 분리하기 위해 30k batch 3DGS 비교를 진행함.
-
-사용한 OTF source 는 legacy Bernoulli OTF native, iter=270, seed=0 결과임.
-
-Sim(3) alignment 결과는 207 / 207 image pair 기준 RMSE 0.0209, scale 9.96 으로 확인됨.
-
-### 비교군 정의
-
-| variant | pose | init points | 의미 |
-|---|---|---|---|
-| A | COLMAP rig pose | COLMAP mapper sparse points | batch 3DGS 기준선 |
-| D | Sim(3)-aligned OTF pose | COLMAP mapper sparse points | pose 만 OTF 로 바꿨을 때 영향 |
-| C-matched | COLMAP rig pose | OTF Gaussian-center pseudo PLY, count-matched | point init 만 OTF 로 바꿨을 때 영향 |
-| B-matched | Sim(3)-aligned OTF pose | OTF Gaussian-center pseudo PLY, count-matched | OTF pose + OTF Gaussian init 결합 영향 |
-| C-full | COLMAP rig pose | full OTF Gaussian-center pseudo PLY | dense OTF warm-start 영향 |
-| B-full | Sim(3)-aligned OTF pose | full OTF Gaussian-center pseudo PLY | OTF pose + dense OTF warm-start 영향 |
-
-### 현재 완료 결과
-
-| # | variant | n_init | iter 7,000 PSNR | iter 30,000 PSNR | delta vs A @30k |
-|---:|---|---:|---:|---:|---:|
-| 1 | A: COLMAP pose x COLMAP points | 41,678 | 22.89 | 26.49 | - |
-| 2 | C-matched: COLMAP pose x OTF Gaussian init | 41,678 | 22.86 | 26.41 | -0.08 |
-| 3 | D: OTF pose x COLMAP points | 41,678 | 22.46 | 26.03 | -0.46 |
-| 4 | B-matched: OTF pose x OTF Gaussian init | 41,678 | 22.31 | 26.04 | -0.45 |
-
-위 PSNR 은 207 frame reconstruction / train metric 기준임. 또한 B/C-matched 의 OTF Gaussian init 은 OTF Gaussian 의 **center 위치**를 count-matched sparse initialization 으로 사용한 것임. Scale / opacity / SH 를 포함한 full OTF primitive quality 는 C-full / B-full 결과로 별도 확인 중임.
-
-### 현재 해석
-
-| 비교 | 결과 | 해석 |
-|---|---:|---|
-| A -> C-matched | -0.08 dB | OTF Gaussian center 위치 분포는 batch 3DGS init 으로 거의 손색 없음 |
-| A -> D | -0.46 dB | OTF pose 는 약간의 손실을 만들지만, native OTF 의 약 6 dB gap 을 설명할 정도는 아님 |
-| A -> B-matched | -0.45 dB | OTF pose + OTF init 을 같이 써도 손실은 D 와 거의 같음 |
-| D vs B-matched | 26.03 vs 26.04 | 같은 OTF pose 에서는 COLMAP sparse 와 OTF Gaussian init 차이가 거의 없음 |
-
-즉, 현재까지 완료된 결과만 보면 OTF Gaussian 의 center 위치 분포는 count-matched sparse initialization 으로 사용할 때 batch 3DGS 수렴에 큰 손실을 주지 않음. OTF pose 도 batch 3DGS 에서는 약 0.45 dB 정도의 손실만 만듦. OTF native 가 약 19~20 dB 대에 머무는 큰 차이는 pose / point initialization 대실패라기보다, streaming 과정에서의 제한된 photometric refinement, selective revisit 부재, primitive lifecycle 정책 쪽으로 좁혀짐.
-
-## 4. 현재 기준 중간 결론
+## 8. 현재 결론과 다음 실험 방향
 
 | 원인 후보 | 현재 판정 |
 |---|---|
-| 단순 spawn 수 부족 | accepted spawn 을 2.7배 늘려도 PSNR 이 오르지 않아 dominant 원인으로 보기 어려움 |
-| 일반 past-keyframe replay 부족 | +0.4~0.5 dB 개선이 있어 실제 lever 이지만, gap 전체를 설명하지는 못함 |
-| OTF pose 대실패 | batch 3DGS 에서 26.03 dB 까지 수렴하므로 대실패는 아님 |
-| OTF Gaussian geometry 실패 | count-matched init 에서 26.41 dB 까지 수렴하므로 큰 실패는 아님 |
-| 남은 주요 후보 | streaming-time optimization budget 배분, selective revisit, primitive lifecycle, confidence signal |
+| 단순 Gaussian 생성 수 부족 | 생성 수를 크게 늘려도 품질이 오르지 않아 주 원인으로 보기 어려움 |
+| past-keyframe sliding-window refinement 부재 | 지침서 방향으로 구현했지만 현 optimizer에서는 scaling explosion으로 완주하지 못함 |
+| OTF pose 오류 | 약 -0.39 dB 손실이 있으나 전체 품질 차이를 설명하지 못함 |
+| OTF Gaussian 중심점 geometry 오류 | 약 -0.10 dB 손실로 작음 |
+| confidence signal | Gradient EMA가 가장 강한 단일 신호이며, visibility 계열 신호와 결합할 근거가 있음 |
+| 남은 주요 후보 | selective revisit, Gaussian lifecycle, confidence 기반 선택 정책, packet-level update 안정화 |
 
-따라서 현재 단계에서는 "더 많이 spawn 한다" 보다는, 제한된 streaming budget 안에서 **어떤 keyframe / view / Gaussian 을 다시 최적화하거나 유지할지 결정하는 selective revisit / lifecycle / confidence signal** 쪽을 다음 검증 축으로 두는 것이 타당해 보임.
+다음 실험 방향은 단순히 Gaussian을 더 많이 만들거나 timestamp packet 전체를 그대로 한 step에 넣는 것이 아니라, **어떤 view / Gaussian을 다시 최적화할지 선택하는 기준**을 만드는 쪽이 더 타당함. 현재 결과 기준으로는 Gradient EMA와 visibility 계열 신호 하나를 결합한 confidence score가 가장 우선 검토할 후보임.
 
-## 5. 현재 수행 상태
+---
 
-| 요청 항목 | 현재 상태 | 비고 |
-|---|---|---|
-| 기존 5-way 비교 표현 정정 | 수행 | OTF points 표현을 OTF pose / re-triangulated points / Gaussian-center init 으로 분리 |
-| E0 baseline 확인 | 수행 | seed=0 기준 |
-| E1 spawn 증가 확인 | 수행 | seed=0 기준, 단순 intensity 증가는 negative |
-| E2 sliding-window replay 확인 | 수행 | seed=0 기준, +0.4~0.5 dB |
-| E3 결합 확인 | 수행 | seed=0 기준, additive 하지 않음 |
-| pose / point initialization 분리 | 일부 수행 | A, D, C-matched, B-matched 완료 |
-| 3-seed 반복 | 미수행 | 현재 핵심 결과 대부분 seed=0 diagnostic |
-| full OTF warm-start 비교 | 진행 중 | C-full 진행 중, B-full 대기 |
-| P0-3 confidence signal prototype | 미수행 | S6 gradient EMA / S7 rendering contribution / S2 cross-view coverage 는 아직 구현 전 |
-| P1 우선순위 조정 제안 | 초안 수준 | 현재 결과상 단순 spawn 증가보다 selective revisit / lifecycle 쪽이 후보이나, seed 보강 후 확정 필요 |
+## Appendix. 실행 조건 요약
 
-## 6. 아직 진행 중인 항목
-
-| 항목 | 상태 | 목적 |
-|---|---|---|
-| C-full | 진행 중 | COLMAP pose 에 full OTF Gaussian-center warm-start 를 넣었을 때 batch 3DGS 가 얼마나 회복되는지 확인 |
-| B-full | 대기 | OTF pose + full OTF Gaussian-center warm-start 결합 영향 확인 |
-| E variant | 필요 시 수행 | OTF pose 로 COLMAP matches 를 다시 triangulate 한 sparse points 와 COLMAP sparse points 비교 |
-| E0 / E1 / E2 / E3 seed 1,2 | 미수행 | single-seed 착시 제거 |
-| matched pose/point audit seed 1,2 | 미수행 | OTF pose / init 결론의 seed robustness 확인 |
+| 본문 조건 | 구현상 의미 |
+|---|---|
+| 기본 streaming 결과 | 원본 OTF식 Bernoulli Gaussian 생성, 기본 생성 강도 |
+| Gaussian 생성 강도 2배 증가 | 기본 대비 Gaussian 생성 확률 강도 증가 |
+| Gaussian 생성 강도 4배 증가 | Gaussian 생성 확률 강도를 더 크게 증가 |
+| rig timestamp packet 단위 sliding-window refinement | 현재 timestamp packet 전체 view + 과거 5/10 timestamp packet 일부 view를 같은 optimization step에 반영 |
