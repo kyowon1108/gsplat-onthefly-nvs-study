@@ -24,7 +24,7 @@
 | Split         | train 25 / test 25 / tracking-only 50 timesteps (OB3D에서 공식적으로 명시함.)                                                                                              |
 | OB3D paper    | <https://arxiv.org/abs/2505.20126>                                                                                                                               |
 
-![](video_picture/260630/12view_colmap_image.png)
+![](../video_picture/260630/12view_colmap_image.png)
 - colmap gui로 촬영한 12 view 상단 캡처본.
 
 | Yaw  | Pitch                 |
@@ -35,7 +35,7 @@
 - 3개의 pitch ring X 4개 yaw direction = 12 view임. (colmap의 `panorama_sfm.py`에서 진행하는 12 view split과 동일함.)
 
 
-![](video_picture/260630/ob3d_colmap_gui_trajectory_example.png)
+![](../video_picture/260630/ob3d_colmap_gui_trajectory_example.png)
 - 현재 12 scene 전부 원형으로 돌아가며 위로 이동하는 trajectory임.
 
 ## 2. panorama_sfm-style CLI 변환
@@ -48,7 +48,7 @@
 - 왼쪽 : ours EQR to pinhole image 추출 결과
 - 중간 : colmap `panorama_sfm.py`에서 EQR to pinhole image 추출 결과
 - 오른쪽 : 두 추출물의 차이 시각화
-![](video_picture/260630/ours_vs_panorama_sfm_pinhole_image.png)
+![](../video_picture/260630/ours_vs_panorama_sfm_pinhole_image.png)
 - pixel의 세부적인 샘플링 차이는 존재해도, 정확한 각도로 추출한 것을 알 수 있음.
 
 ### 2.2 CLI 단계
