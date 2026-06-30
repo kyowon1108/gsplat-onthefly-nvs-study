@@ -33,6 +33,7 @@ OB3D/
 | Normal EXR     | GT normal                  | surface 품질 확인                 |
 | Sparse PLY     | sparse 3D point cloud      | SfM-style reference           |
 | train/test txt | split 제공                   | NVS 평가                        |
+
 ![](../video_picture/260628/ob3d_lone-monk.png)
 - 12 scene dataset 중 일부인 lone-monk의 RGB 이미지 예시. 800x400 해상도.
 # 3. Egocentric / Non-Egocentric trajectory 차이  
