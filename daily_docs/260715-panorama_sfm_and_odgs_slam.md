@@ -82,7 +82,7 @@ COLMAP 4.1.0은 360° 파노라마를 직접 처리하는 구면 카메라 모�
 
 ## 3. ODGS-SLAM dataset 분석
 
-ODGS-SLAM은 자체 제작한 **실제 실내 + Blender 합성 실내/실외** 데이터셋에서 native EQR RGB/RGBD SLAM을 평가함. ([paper](https://openaccess.thecvf.com/content/CVPR2026/papers/Spiss_ODGS-SLAM_Omnidirectional_Gaussian_Splatting_SLAM_CVPR_2026_paper.pdf), [supplement](https://openaccess.thecvf.com/content/CVPR2026/supplemental/Spiss_ODGS-SLAM_Omnidirectional_Gaussian_CVPR_2026_supplemental.pdf))
+ODGS-SLAM은 실제 실내 + Blender 합성 실내/실외 데이터셋에서 native EQR RGB/RGBD SLAM을 평가함. ([paper](https://openaccess.thecvf.com/content/CVPR2026/papers/Spiss_ODGS-SLAM_Omnidirectional_Gaussian_Splatting_SLAM_CVPR_2026_paper.pdf), [supplement](https://openaccess.thecvf.com/content/CVPR2026/supplemental/Spiss_ODGS-SLAM_Omnidirectional_Gaussian_CVPR_2026_supplemental.pdf))
 
 | 구분                | 데이터·규모                                          | EQR / Depth                          |
 | ----------------- | ----------------------------------------------- | ------------------------------------ |
