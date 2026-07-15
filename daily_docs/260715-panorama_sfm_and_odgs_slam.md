@@ -8,7 +8,7 @@ COLMAP 4.1.0은 360° 파노라마를 직접 처리하는 구면 카메라 모�
 | **P** | `perspective_overlapping` | EQR 1장을 겹치는 12개 `SIMPLE_PINHOLE` 영상으로 렌더링한 뒤 rig로 재구성 |
 
 ### 평가 scene (OB3D)
-![OB3D scene first frames](scene_first_frames_3x4.png)
+![OB3D scene first frames](../video_picture/260715/scene_first_frames_3x4.png)
 
 ### 실험 및 핵심 결과
 
@@ -28,7 +28,7 @@ COLMAP 4.1.0은 360° 파노라마를 직접 처리하는 구면 카메라 모�
 
 ### Trajectory 비교
 
-![Corrected trajectory comparison](F2_trajectory_examples.png)
+![Corrected trajectory comparison](../video_picture/260715/F2_trajectory_examples.png)
 
 ### 시간 차이 정량 분석
 
@@ -91,7 +91,7 @@ ODGS-SLAM은 자체 제작한 **실제 실내 + Blender 합성 실내/실외** �
 | Synthetic–Indoor  | `Italian Flat`, 5 trajectories, 250~1500 frames | 3840×1920 / Blender GT depth         |
 | Synthetic–Outdoor | UZH virtual urban, 3000 frames                  | 3840×1920 / Blender GT depth         |
 
-![ODGS-SLAM synthetic indoor/outdoor RGB and depth examples](odgs_synthetic_dataset_examples.png)
+![ODGS-SLAM synthetic indoor/outdoor RGB and depth examples](../video_picture/260715/odgs_synthetic_dataset_examples.png)
 
 - ODGS-SLAM supplement paper - synthetic indoor/outdoor의 EQR·fisheye·pinhole RGB/depth 예시.
 - Cycles : Blender의 물리 기반 렌더링 엔진
