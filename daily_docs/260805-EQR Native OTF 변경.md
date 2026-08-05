@@ -21,6 +21,7 @@
 
 EQR bearing 계약은 다음과 같음.
 
+
 $$
 \lambda
 =
@@ -50,6 +51,7 @@ $$
 $$
 
 영상 중앙은 $+Z$, 오른쪽은 $+X$, 아래쪽은 $+Y$임.
+
 ### 1.2 Bootstrap
 
 ```text
@@ -60,12 +62,11 @@ EQR Native
 bearing match → spherical essential RANSAC → pose·point angular MiniBA
 ```
 
-| 경계          | upstream                                    | EQR Native                                                                                               |
-| ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 상대 pose 추정  | pixel correspondence로 fundamental matrix 추정 | bearing correspondence로 spherical essential matrix 추정<br>(EQR 픽셀을 3D 방향 벡터로 바꾼 뒤, 두 카메라 사이의 상대 pose를 추정) |
-| 카메라 변수      | pose와 focal을 함께 초기화·최적화                     | EQR projection이 고정되어 focal 변수를 제거함                                                                       |
-| BA residual | pixel residual                              | angular tangent-plane residual                                                                           |
-| Gauge       | translation-vector 차이 사용                    | camera-center 이동량 사용                                                                                     |
+| 경계          | upstream                                    | EQR Native                             |
+| ----------- | ------------------------------------------- | -------------------------------------- |
+| 카메라 변수      | pose와 focal을 함께 초기화·최적화                     | EQR projection이 고정되어 focal 변수를 제거함     |
+| BA residual | pixel residual                              | angular tangent-plane residual         |
+| Gauge       | translation-vector 차이 사용                    | camera-center 이동량 사용                   |
 
 - Angular tangent-plane residual : 관측 bearing과 예측 bearing 사이의 구면 오차를 관측 방향의 접평면 위 2차원 벡터로 표현한 것임. optimizer가 pose를 수정할 방향을 제공함.
 
@@ -84,14 +85,14 @@ bearing match → spherical essential RANSAC → pose·point angular MiniBA
 
 | 단계            | upstream pinhole               | EQR Native                                                                               | 상태        |
 | ------------- | ------------------------------ | ---------------------------------------------------------------------------------------- | --------- |
-| 특징 검출         | 이미지에서 XFeat 검출                 | XFeat을 먼저 EQR 이미지에서 검출 후 검출된 keypoint 위치를 unit bearing으로 변환                              | 불확실       |
+| 특징 검출         | 이미지에서 XFeat 검출                 | XFeat을 먼저 EQR 이미지에서 검출 후 검출된 keypoint 위치를 unit bearing으로 변환                              | 구현 완료     |
 | KF gate       | pixel motion과 match 수 사용       | 매칭된 두 bearing 집합에서 Kabsch로 카메라 회전에 의한 공통 움직임 제거. 이후에도 남는 각 변화량의 중앙값이 문턱보다 클 때에만 새 KF로 승인 | 문턱 미확정    |
 | 2D–3D 대응      | pixel keypoint ↔ world point   | unit bearing ↔ world point                                                               | 확정        |
 | Pose RANSAC   | P4P와 pixel inlier threshold    | spherical PnP와 angular inlier threshold                                                  | 확정        |
 | Pose 정련       | pixel residual LM              | angular tangent-plane residual LM<br>(pose로 예측한 ray가 실제 feature ray와 일치하도록 미세 조정)        | 확정        |
 | 삼각측량 geometry | positive z와 pixel reprojection | 두 관측 ray의 양수 range와 angular reprojection                                                 | 확정        |
 | 삼각측량 채택 gate  | near/far pixel disambiguation  | angular disambiguation<br>(안정적인 교점인지 판단해야 하는데, 지금 해당 부분에 대한 채택 gate에 대한 방법을 구상중)         | 최종 정책 미확정 |
-- 특징 검출 부분에서, 극점에 대한 보정 없이 XFeat를 수행하므로, 해당 부분은 작동은 하나 수정이 필요해보임.
+- 특징 검출 부분에서, 극점에 대한 보정 없이 XFeat를 수행하므로, 해당 부분은 작동은 하나 수정이 필요해보임. (극정 강건성 미검증)
 
 ### 1.4 Mapper
 
@@ -110,6 +111,8 @@ bearing match → spherical essential RANSAC → pose·point angular MiniBA
 - **Guided MVS** : UniK3D가 예측한 거리를 그대로 믿지 않고, 그 주변 거리들을 시험함. 각 후보를 이웃 KF에서 확인하여 같은 물체의 feature와 가장 잘 맞는 거리를 선택함.
 
 - **Rasterizer** : 3D Gaussian의 중심을 경도와 위도로 투영하고, 구면 projection의 Jacobian을 사용하여 화면상의 크기와 모양을 계산함. 투영된 Gaussian들을 합성하여 EQR RGB, alpha 및 radial depth 이미지 생성.
+
+- 현재 novelty를 위한 confidence budget spawning은 아직 미구현 상태임.
 
 ---
 
