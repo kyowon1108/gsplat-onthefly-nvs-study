@@ -75,16 +75,17 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 
 ### 4-1. 수행 시간 및 품질
 
-| Scene   | COLMAP  | Train 30k | Scene 합계   | PSNR     | SSIM   | 85–96° PSNR |
+| Scene   | COLMAP  | Train 30k | Scene 합계   | PSNR     | SSIM   | 85~96° PSNR |
 | ------- | ------- | --------- | ---------- | -------- | ------ | ----------- |
 | Scene01 | 18m 12s | 49m 20s   | 1h 7m 32s  | 32.17 dB | 0.9573 | 27.32 dB    |
 | Scene02 | 23m 23s | 49m 21s   | 1h 12m 44s | 32.62 dB | 0.9590 | 27.28 dB    |
 | Scene03 | 15m 19s | 50m 27s   | 1h 5m 46s  | 33.46 dB | 0.9620 | 28.22 dB    |
 | Scene04 | 5m 31s  | 53m 25s   | 58m 56s    | 28.88 dB | 0.8915 | 23.50 dB    |
 | Scene05 | 27m 23s | 50m 11s   | 1h 17m 34s | 35.62 dB | 0.9687 | 28.53 dB    |
-- COLMAP은 카메라 위치를 추정하는 용도로 사용하지 않았으며, Blender GT pose를 고정한 상태에서 학습 영상만으로 초기 sparse point를 생성하는 데 사용함.
-- Renderer는 최대 입사각 96°까지 처리하도록 구현함. 다만 이번 COLMAP 초기 점군의 실제 관측은 약 90° 이내에 분포함.
-- > Scene04의 right camera PSNR은 16.34 dB로, 나머지 camera의 31.02–34.40 dB보다 낮았음. 해당 구간에서 right camera가 근거리 벽을 주로 촬영한 영향임.
+
+- 카메라 위치와 방향은 Blender에서 생성한 GT pose를 그대로 사용함. COLMAP은 카메라 위치를 추정하지 않고, 학습 영상 사이의 특징점을 연결하여 GS 초기화에 사용할 3D point cloud을 생성하는 데만 사용함.
+- Renderer는 어안 영상 중심으로부터 최대 96° 방향까지 학습하고 Render하도록 구현함. 다만 COLMAP이 초기 3D point cloud을 만들 때 연결한 특징점은 약 90° 이내에만 존재했음. 90–96° 영역은 초기 점군이 아니라 GS train을 통해 보완됨.
+- Scene04의 right camera PSNR은 16.34 dB로, 나머지 camera의 31.02–34.40 dB보다 낮았음. (Right camera가 근거리 벽을 주로 촬영했기 때문)
 
 ### 4-2. held-out Render 결과
 
