@@ -50,9 +50,6 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 | ![](../video_picture/260812/f001_front.png) | ![](../video_picture/260812/f001_rear.png) | ![](../video_picture/260812/f001_left.png) | ![](../video_picture/260812/f001_right.png) |
 | Front                                       | Rear                                       | Left                                       | Right                                       |
 
-- Scene01–Scene04는 train stride 1을 사용하고, Scene05는 메모리 한계로 timestamp stride 2를 사용함.
-
-
 ---
 ## 3. Offline GS 적용
 
@@ -64,6 +61,14 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 
 - Seed 0, 30,000 iteration, 1280×960 조건으로 모든 scene을 학습함.
 - Test frame에는 Gaussian을 추가하지 않으며, 학습된 Gaussian scene을 held-out GT camera pose에서만 렌더링함.
+
+| Scene   | Image 수                             |
+| ------- | ----------------------------------- |
+| Scene01 | 73 timestamp × 4 cameras = **292장** |
+| Scene02 | 72 timestamp × 4 cameras = **288장** |
+| Scene03 | 86 timestamp × 4 cameras = **344장** |
+| Scene04 | 86 timestamp × 4 cameras = **344장** |
+| Scene05 | 91 timestamp × 4 cameras = **364장** |
 
 ---
 ## 4. 수행 결과
