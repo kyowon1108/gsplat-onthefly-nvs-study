@@ -7,8 +7,8 @@
 - [미착수] 현재 Online으로 전환하지는 않음.
 
 **이번 결과 / 막힌 것 / 다음**
-- 결과: 5개 생성한 Scene에서 Offline GS 정상 수행되는 것을 확인 완료함.
-- 다음: Online 전환 방식 구상
+- 결과: 5개 Scene에서 Offline GS 학습과 held-out 60 view 평가를 완료함. PSNR 28.88~35.62 dB, SSIM 0.8915~0.9687을 기록함.
+- 다음: 온라인 GS의 입력·갱신·출력 구조 설계
 
 ---
 
@@ -25,7 +25,7 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 | Scene04 | 남쪽 통로에서 목표 구간을 지나친 뒤 역방향 S-curve와 짧은 전진 보정을 거쳐 평행 주차하는 scene               |
 | Scene05 | B6을 지나친 상태에서 후진–전진 보정–최종 후진을 수행하여 B6에 진입하는 3-point switchback scene        |
 
-### 1-2. Scene top view gif
+### 1-2. 원본 주행 경로
 
 | ![](../video_picture/260812/scene01_path_topview.gif) | ![](../video_picture/260812/scene02_path_topview.gif) | ![](../video_picture/260812/scene03_path_topview.gif) | ![](../video_picture/260812/scene04_path_topview.gif) | ![](../video_picture/260812/scene05_path_topview.gif) |
 | ----------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
@@ -43,7 +43,7 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 - 한 Timestamp에 4개 Camera를 1280×960로 동시 생성함.
 - Dataset에 대해 차체에 대한 부분만 masking해 train에서 제외함.
 
-### 2-1. Dataset masking
+### 2-1. 차량 영역 masking
 
 | ![](../video_picture/260812/front_ego.png)  | ![](../video_picture/260812/rear_ego.png)  | ![](../video_picture/260812/left_ego.png)  | ![](../video_picture/260812/right_ego.png)  |
 | ------------------------------------------- | ------------------------------------------ | ------------------------------------------ | ------------------------------------------- |
@@ -77,16 +77,18 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 | Scene03 | 15m 19s | 50m 27s   | 1h 5m 46s  | 33.46 dB | 0.9620 | 28.22 dB    |
 | Scene04 | 5m 31s  | 53m 25s   | 58m 56s    | 28.88 dB | 0.8915 | 23.50 dB    |
 | Scene05 | 27m 23s | 50m 11s   | 1h 17m 34s | 35.62 dB | 0.9687 | 28.53 dB    |
-- Scene04는 일부 test timestamp에서 right camera가 근거리 벽을 대부분 촬영하므로 pixel metric이 상대적으로 낮게 측정됨. 다만 top-view에서는 주차선, 벽 및 차량 주변 구조가 연속적으로 유지됨.
+- COLMAP은 카메라 위치를 추정하는 용도로 사용하지 않았으며, Blender GT pose를 고정한 상태에서 학습 영상만으로 초기 sparse point를 생성하는 데 사용함.
+- Renderer는 최대 입사각 96°까지 처리하도록 구현함. 다만 이번 COLMAP 초기 점군의 실제 관측은 약 90° 이내에 분포함.
+- > Scene04의 right camera PSNR은 16.34 dB로, 나머지 camera의 31.02–34.40 dB보다 낮았음. 해당 구간에서 right camera가 근거리 벽을 주로 촬영한 영향임.
 
-### 4-1. 수행 결과 held-out top view Render gif
+### 4-2. held-out Render 결과
 
 | ![](../video_picture/260812/scene01_render_avm.gif) | ![](../video_picture/260812/scene02_render_avm.gif) | ![](../video_picture/260812/scene03_render_avm.gif) | ![](../video_picture/260812/scene04_render_avm.gif) | ![](../video_picture/260812/scene05_render_avm.gif) |
 | --------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
 | Scene01                                             | Scene02                                             | Scene03                                             | Scene04                                             | Scene05                                             |
 
-### 4-2. held-out frame 일부 Render
-- 맨 위부터 GT, Render, Absolute Error 순서로 표기함.
+### 4-3. held-out frame 일부 Render
+- 맨 위부터 GT, Render, 절대 오차(absolute error) 순서로 표기함.
 
 #### Scene01
 ![](../video_picture/260812/scene01_rig_grid.jpg)
