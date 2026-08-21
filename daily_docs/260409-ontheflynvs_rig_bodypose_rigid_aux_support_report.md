@@ -157,7 +157,7 @@ sensor별 support 결과:
 
 증거 이미지:
 
-![](../video_picture/260409/260409_aux_sensor_support.png)
+![](../video_picture/260409/260409_aux_sensor_support.webp)
 
 ### 7.2 keyframe별 aux support 분포
 
@@ -178,7 +178,7 @@ sensor별 support 결과:
 
 증거 이미지:
 
-![](../video_picture/260409/260409_aux_support_timeline_heatmap.png)
+![](../video_picture/260409/260409_aux_support_timeline_heatmap.webp)
 
 ---
 
@@ -188,7 +188,7 @@ sensor별 support 결과:
 
 `test_hold=4`로 제외된 6개 keyframe에 대해 GT와 render를 비교한 결과는 아래와 같음.
 
-![](../video_picture/260409/260409_testhold4_render_vs_gt_grid.png)
+![](../video_picture/260409/260409_testhold4_render_vs_gt_grid.webp)
 
 - holdout frame 6장 모두 render가 정상적으로 생성됨
 - `frame_00641`, `frame_00801` 같은 후반부 test frame도 완전히 붕괴하지 않음
@@ -198,7 +198,7 @@ sensor별 support 결과:
 
 최종 rigid aux support run의 body trajectory와 keyframe별 body 이동량
 
-![](../video_picture/260409/260409_body_trajectory_support.png)
+![](../video_picture/260409/260409_body_trajectory_support.webp)
 
 - 전체 trajectory는 U-turn 형태를 유지하면서 23 keyframe이 끝까지 등록됨
 - keyframe 간 이동량이 후반부에서도 급격히 0으로 붕괴하지 않음

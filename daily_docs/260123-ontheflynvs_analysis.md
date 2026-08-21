@@ -73,15 +73,15 @@ On-the-fly NVS는 **clone/split 없이** 다음 전략 사용:
 
 | View | Ablation 비교 (GT, A, B, C, D) |
 |------|-------------------------------|
-| High_Cam01 Frame 1 | <img src="../video_picture/260123/ablation_compare_High_Cam01_f0001.png" width="900"> |
-| High_Cam01 Frame 2 | <img src="../video_picture/260123/ablation_compare_High_Cam01_f0801.png" width="900"> |
-| High_Cam08 Frame 1 | <img src="../video_picture/260123/ablation_compare_High_Cam08_f0001.png" width="900"> |
+| High_Cam01 Frame 1 | <img src="../video_picture/260123/ablation_compare_High_Cam01_f0001.webp" width="900"> |
+| High_Cam01 Frame 2 | <img src="../video_picture/260123/ablation_compare_High_Cam01_f0801.webp" width="900"> |
+| High_Cam08 Frame 1 | <img src="../video_picture/260123/ablation_compare_High_Cam08_f0001.webp" width="900"> |
 
 #### Low Camera
 
 | View | Ablation 비교 (GT, A, B, C, D) |
 |------|-------------------------------|
-| Low_Cam01 Frame 1 | <img src="../video_picture/260123/ablation_compare_Low_Cam01_f0041.png" width="900"> |
+| Low_Cam01 Frame 1 | <img src="../video_picture/260123/ablation_compare_Low_Cam01_f0041.webp" width="900"> |
 
 **관찰 결과:**
 - 육안으로는 A, B, C, D 간 큰 차이가 보이지 않음
@@ -121,7 +121,7 @@ Central-only Baseline → Coverage Extension → Multiview Pose Logging → Timi
 | SSIM | 0.587 |
 | LPIPS | 0.376 |
 
-![](../video_picture/260123/260123-colmap_gui_central_only.png)
+![](../video_picture/260123/260123-colmap_gui_central_only.webp)
 
 #### 3.3.2 Coverage Extension (멀티뷰로 맵 확장)
 | 항목 | Central-only | Coverage | 변화 |
@@ -133,7 +133,7 @@ Central-only Baseline → Coverage Extension → Multiview Pose Logging → Timi
 | SSIM | 0.587 | 0.492 | **-16%** |
 | LPIPS | 0.376 | 0.438 | **+16%** |
 
-![](../video_picture/260123/260123-colmap_gui_central_only.png)
+![](../video_picture/260123/260123-colmap_gui_central_only.webp)
 
 **결과: 품질 악화, 속도 악화 - 완전 실패**
 

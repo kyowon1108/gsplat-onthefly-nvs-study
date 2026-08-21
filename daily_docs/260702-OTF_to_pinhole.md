@@ -31,7 +31,7 @@
 
 # 2. 왜 EQR을 그대로 못 쓰는가?
 
-![](../video_picture/260702/ob3d_explain.png)
+![](../video_picture/260702/ob3d_explain.webp)
 - OB3D의 dataset 중 하나를 예시로 특징을 시각화함.
 
 ### 2.1 용어 정리

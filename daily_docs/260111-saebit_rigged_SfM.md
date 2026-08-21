@@ -24,7 +24,7 @@
 | 이미지 해상도 | 1920×1920 |
 
 ![촬영 환경](../video_picture/260111/260111-dataset_environment.jpg)
-![이동 경로](../video_picture/260111/260111-dataset_movement_route.png)
+![이동 경로](../video_picture/260111/260111-dataset_movement_route.webp)
 
 ## 3. 파이프라인 설정
 
@@ -44,7 +44,7 @@
 | 회전 | 360 Extractor Tool json file 기반 (Blender → OpenCV 좌표 변환) |
 | 이동 | [0, 0, 0] (단일 시점) |
 
-![Blender Rig 구성](../video_picture/260111/260111-blender_rig_image.png)
+![Blender Rig 구성](../video_picture/260111/260111-blender_rig_image.webp)
 
 > 위 그림은 Blender 360 Extractor에서 구성한 원본 Rig. 원형 배치(translation 포함)로는 COLMAP 수렴 실패하여, 2-step 결과를 참고해 translation을 제거하고 모든 카메라가 [0,0,0]에서 회전만 하도록 수정함.
 
@@ -146,11 +146,11 @@ cam_from_ref = R_cam.T @ R_ref
 | 재투영 오차 | 0.87 px | 0.92 px | +6% |
 
 #### 5.1.1 No Rig COLMAP GUI
-![No Rig COLMAP GUI](../video_picture/260111/260111-colmap_gui_no_rig.png)
+![No Rig COLMAP GUI](../video_picture/260111/260111-colmap_gui_no_rig.webp)
 - Rig 제약 없이 각 이미지가 독립적으로 처리됨
 
 #### 5.1.2 Rig COLMAP GUI
-![Rig COLMAP GUI](../video_picture/260111/260111-colmap_gui_rig.png)
+![Rig COLMAP GUI](../video_picture/260111/260111-colmap_gui_rig.webp)
 - 9개 카메라가 하나의 Rig로 묶여 프레임 단위로 처리됨
 
 

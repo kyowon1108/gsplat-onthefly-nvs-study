@@ -34,12 +34,12 @@ OB3D/
 | Sparse PLY     | sparse 3D point cloud      | SfM-style reference           |
 | train/test txt | split 제공                   | NVS 평가                        |
 
-![](../video_picture/260628/ob3d_lone-monk.png)
+![](../video_picture/260628/ob3d_lone-monk.webp)
 - 12 scene dataset 중 일부인 lone-monk의 RGB 이미지 예시. 800x400 해상도.
 # 3. Egocentric / Non-Egocentric trajectory 차이  
 - ==Egocentric== : 촬영자 또는 중심점을 기준으로 원형/나선형으로 움직이는 trajectory임. image 간 disparity가 작아 low-parallax / rotation-heavy 상황에 가까움.
 - ==Non-Egocentric== : scene 내부를 더 자유롭게 이동하는 trajectory이며, translation baseline과 parallax가 더 크기 때문에 실제 3D reconstruction 평가에 더 직접적임.
-![](../video_picture/260628/ob3d_egnocentric_vs_nonevnocentric.png)
+![](../video_picture/260628/ob3d_egnocentric_vs_nonevnocentric.webp)
 
 # 4. 어떤 평가에 사용할 수 있는가  
 1. NVS 품질 평가: PSNR, SSIM, LPIPS  

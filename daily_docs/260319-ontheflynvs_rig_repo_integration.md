@@ -20,10 +20,10 @@
 
 | View / Frame | GT | OnTheFlyNVS | PostShot |
 |---|---|---|---|
-| High_Cam06 / frame_000000 | <img src="../video_picture/260319/High_Cam06__frame_000000__gt.png" width="280"> | <img src="../video_picture/260319/High_Cam06__frame_000000__nvs.png" width="280"> | <img src="../video_picture/260319/High_Cam06__frame_000000__postshot.png" width="280"> |
-| High_Cam07 / frame_000013 | <img src="../video_picture/260319/High_Cam07__frame_000013__gt.png" width="280"> | <img src="../video_picture/260319/High_Cam07__frame_000013__nvs.png" width="280"> | <img src="../video_picture/260319/High_Cam07__frame_000013__postshot.png" width="280"> |
-| High_Cam08 / frame_000024 | <img src="../video_picture/260319/High_Cam08__frame_000024__gt.png" width="280"> | <img src="../video_picture/260319/High_Cam08__frame_000024__nvs.png" width="280"> | <img src="../video_picture/260319/High_Cam08__frame_000024__postshot.png" width="280"> |
-| Low_Cam08 / frame_000020 | <img src="../video_picture/260319/Low_Cam08__frame_000020__gt.png" width="280"> | <img src="../video_picture/260319/Low_Cam08__frame_000020__nvs.png" width="280"> | <img src="../video_picture/260319/Low_Cam08__frame_000020__postshot.png" width="280"> |
+| High_Cam06 / frame_000000 | <img src="../video_picture/260319/High_Cam06__frame_000000__gt.webp" width="280"> | <img src="../video_picture/260319/High_Cam06__frame_000000__nvs.webp" width="280"> | <img src="../video_picture/260319/High_Cam06__frame_000000__postshot.webp" width="280"> |
+| High_Cam07 / frame_000013 | <img src="../video_picture/260319/High_Cam07__frame_000013__gt.webp" width="280"> | <img src="../video_picture/260319/High_Cam07__frame_000013__nvs.webp" width="280"> | <img src="../video_picture/260319/High_Cam07__frame_000013__postshot.webp" width="280"> |
+| High_Cam08 / frame_000024 | <img src="../video_picture/260319/High_Cam08__frame_000024__gt.webp" width="280"> | <img src="../video_picture/260319/High_Cam08__frame_000024__nvs.webp" width="280"> | <img src="../video_picture/260319/High_Cam08__frame_000024__postshot.webp" width="280"> |
+| Low_Cam08 / frame_000020 | <img src="../video_picture/260319/Low_Cam08__frame_000020__gt.webp" width="280"> | <img src="../video_picture/260319/Low_Cam08__frame_000020__nvs.webp" width="280"> | <img src="../video_picture/260319/Low_Cam08__frame_000020__postshot.webp" width="280"> |
 
 - PostShot은 GT와 비교했을 때 큰 차이가 관찰되지 않았지만, rig 제약을 적용한 on-the-fly-nvs 결과는 시각적으로 뚜렷한 품질 저하가 확인됨.
 - 이 때문에 수정한 코드에서 놓친 부분이 있는지 분석함.

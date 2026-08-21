@@ -2,11 +2,11 @@
 
 ### 수행 과정
 - gaussian-splatting으로 최적화한 시간은 1시간 소요됨.
-![gaussinan-splatting으로 수행한 방 사진](../video_picture/250922_gaussian_room_iphone.png)
+![gaussinan-splatting으로 수행한 방 사진](../video_picture/250922/250922_gaussian_room_iphone.webp)
 - `../video_picture/250922_gaussian_view_room_iphone.mp4`
 
 - on-the-fly-nvs로 같은 사진을 수행했을 때 1분 남짓 소요됨.
-![on-the-fly-nvs로 수행한 방 사진](../video_picture/250922_ontheflynvs_room_iphone.png)
+![on-the-fly-nvs로 수행한 방 사진](../video_picture/250922/250922_ontheflynvs_room_iphone.webp)
 - `../video_picture/250922_ontheflynvs_view_room_iphone.webm`
 
 ### 수행하며
@@ -63,7 +63,7 @@
   ```
 
 ### 학습 결과
-![intel viewsense d435로 학습한 과정](../video_picture/250922_gaussian_viewsense_room_log.png)
+![intel viewsense d435로 학습한 과정](../video_picture/250922/250922_gaussian_viewsense_room_log.webp)
 - Dataset : 126 views, 1270x720@30 fps, 노출 고정, 실내 조명 일정
 - Training : 30k it, 59m 02s, 최종 PSNR 32.8 dB, Eval 주기 1000 it
 - Viewing : render.py 126/126 완료, 평균 2.1 it/s

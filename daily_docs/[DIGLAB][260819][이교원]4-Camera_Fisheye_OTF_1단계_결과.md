@@ -90,7 +90,7 @@ Offline과 1단계 구현은 Scene별 학습 영상 수가 같고, 동일한 tes
 | 평가 pose·투영 | GT pose·equisolid | 동일 | 일치 |
 | test의 map 갱신 | 없음 | 없음 | 일치 |
 
-![Offline 상한 대비 품질 차이](../video_picture/260819/figure_02_quality_gap.png)
+![Offline 상한 대비 품질 차이](../video_picture/260819/figure_02_quality_gap.webp)
 
 | Scene | Offline 카메라 영상 PSNR (dB) | 1단계 카메라 영상 PSNR (dB) | 카메라 영상 화질 차이 (dB) | 서라운드 top-view 화질 차이 (dB) | 차량 모서리 화질 차이 (dB) |
 |---|---:|---:|---:|---:|---:|
@@ -127,9 +127,9 @@ Offline 시간은 COLMAP을 제외한 30,000-iteration 학습 log의 wall time�
 | Scene4 | 3627 | 4910 | 21.8× | 9.78 | 1.25 | 133,783 |
 | Scene5 | 3646 | 5224 | 21.9× | 2.90 | 1.26 | 132,277 |
 
-![세부 처리 시간](../video_picture/260819/figure_04_timing_breakdown.png)
+![세부 처리 시간](../video_picture/260819/figure_04_timing_breakdown.webp)
 
-![Scene별 자원과 Gaussian 수](../video_picture/260819/figure_05_resources_gaussians.png)
+![Scene별 자원과 Gaussian 수](../video_picture/260819/figure_05_resources_gaussians.webp)
 
 - Optimization이 처리 시간의 대부분을 차지함.
 - 학습 RigFrame마다 30 optimizer steps를 수행하고, camera별 render와 backward를 순차 실행해 timestamp당 총 120회 view render/backward가 발생함.
@@ -157,9 +157,9 @@ Left–Front, Front–Right, Right–Rear, Rear–Left 네 인접 camera 쌍을 
 | [FMVSS 111](https://www.nhtsa.gov/sites/nhtsa.gov/files/documents/tp-111-v01-final_tag.pdf) | 후방 0.3 m, 3.05 m, 6.1 m와 좌우 ±1.52 m 위치에 시험체를 배치함 | Surround camera 간 overlap 비율은 규정하지 않음 |
 | [ISO 17386:2023](https://www.iso.org/standard/82952.html) | 거리 측정 기반 저속 장애물 경고 시스템을 대상으로 함 | 거리 측정과 경고가 없는 영상 camera aid는 적용 대상이 아님 |
 
-![전체 시퀀스 거리 대역별 overlap](../video_picture/260819/figure_07_overlap_by_scene.png)
+![전체 시퀀스 거리 대역별 overlap](../video_picture/260819/figure_07_overlap_by_scene.webp)
 
-![거리 대역별 Gaussian 후보 제거율](../video_picture/260819/figure_06_merge_removal.png)
+![거리 대역별 Gaussian 후보 제거율](../video_picture/260819/figure_06_merge_removal.webp)
 
 | Scene  | 전체 frames | 같은 표면 관측 0–2 m | 같은 표면 관측 2–15 m | 4 cm 격자 제거 0–2 m | 4 cm 격자 제거 2–15 m |
 | ------ | --------: | -------------: | --------------: | ---------------: | ----------------: |

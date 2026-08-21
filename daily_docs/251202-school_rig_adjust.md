@@ -6,13 +6,13 @@
     * 좌표계: Z-up
 *   **좌표계 변환**: 입력 데이터(OpenGL 좌표계)와 Colmap 좌표계 간의 불일치를 해결하기 위해, X축 90도 회전 (RotX_90)을 적용하여 카메라가 올바른 방향(정면)을 향하도록 보정함.
     
-    ![](../video_picture/251202/coordinate_fix_diagram.png)
+    ![](../video_picture/251202/coordinate_fix_diagram.webp)
   - 좌 : Input된 Blender의 json 파일(`camera_groups_2025-12-01.json`).
   - 우 : 좌표계 변환 후의 json 파일(`rig_config.json`).
 
 ### 2. 마스크 생성 (Mask Generation)
 *   "Down" 그룹 카메라 이미지의 **하단 20%** 영역을 검은색으로 마스킹 처리함.
-![](../video_picture/251202/down_masked.png)
+![](../video_picture/251202/down_masked.webp)
 
 ### 3. 특징점 추출 및 매칭 (Feature Extraction & Matching)
 ```bash
@@ -81,7 +81,7 @@ school_01/
 ## 결과물 (Outputs)
 
 `outputs/school_01/sparse/rig_adjusted` 경로에 rig 제약이 적용된 colmap 데이터가 생성됨.
-![](../video_picture/251202/colmap_rig_adjusted.png)
+![](../video_picture/251202/colmap_rig_adjusted.webp)
 
 ### Rig 제약 전 후 내부 파라미터 변화 비교
 | Camera | Δfx | Δfy | Δcx | Δcy | ΔR (도) | Δt (mm) | 상태 |
@@ -92,6 +92,6 @@ school_01/
 ## 고찰
 
 ### 1. 마스킹으로 인한 바닥면 흑색화 현상 (Black Floor Artifact)
-![](../video_picture/251202/mask_issue.png)
+![](../video_picture/251202/mask_issue.webp)
 - Down Group 의 pose가 Tilt Angle을 내리기에는 손 형태가 너무 많이 보이고, 올리기에는 기존 Up Group과 보이는 pose가 큰 차이가 없었음.
 - 이로 인해 하단 20%를 검은색으로 mask하는 방식을 택했지만, 최종적으로 Postshot train 도중 해당 영역이 검은색 물체로 학습되는 치명적인 에러가 발생함.

@@ -12,5 +12,7 @@ desktop.ini
 .idea/
 *.swp
 
-# --- 에이전트 세션 상태 ---
+# --- 에이전트 세션 상태 및 설정 ---
 .omc/
+.agents/
+GEMINI.md

@@ -129,7 +129,7 @@ Bundle Adjustment 는 절대 기준 없이 풀면 7-DoF (Degrees of Freedom, 자
 
 #### Figure
 
-![sim3_alignment](../video_picture/260427/fig1_alignment.png)
+![sim3_alignment](../video_picture/260427/fig1_alignment.webp)
 
 | panel | 설명 |
 |---|---|
@@ -138,7 +138,7 @@ Bundle Adjustment 는 절대 기준 없이 풀면 7-DoF (Degrees of Freedom, 자
 | 좌하 | per-timestep ATE (5-run mean ± σ band, RMSE 0.0121) |
 | 우하 | per-timestep RPE rot (5-run mean ± σ band, RMSE 0.055°) |
 
-![scale_origin](../video_picture/260427/fig2_scale_origin.png)
+![scale_origin](../video_picture/260427/fig2_scale_origin.webp)
 
 | panel | 설명 |
 |---|---|
@@ -185,7 +185,7 @@ keyframe.get_t() = rel_R[v] @ scene_model.rig_t[ts_idx]   # rel_t = 0
 
 완전 동일 셋업 (rig-unit code / holdout=High_Cam01 / iter=100 / seed=0 / enable_reboot) 에서 **lr_poses 유무만 다른** 직접 비교.
 
-![issue3_2cell](../video_picture/260427/fig_issue3_2cell.png)
+![issue3_2cell](../video_picture/260427/fig_issue3_2cell.webp)
 
 | 지표 | 측정 B (lr_poses = 0) | 측정 5 (lr_poses = 1e-4, rig-unit) | Δ |
 |---|---:|---:|---:|
@@ -250,7 +250,7 @@ for v_name in view_order:
 
 #### 결과
 
-![per_view_pnp](../video_picture/260427/fig_3_6_1_per_view_pnp.png)
+![per_view_pnp](../video_picture/260427/fig_3_6_1_per_view_pnp.webp)
 
 위 figure 는 1×2 horizontal bar 구성 (좌: mean effective_weight, 우: mean n_inliers).
 
@@ -313,7 +313,7 @@ for v_name in view_order:
 
 #### 정성
 
-![3way_render_grid](../video_picture/260427/3way_render_grid.png)
+![3way_render_grid](../video_picture/260427/3way_render_grid.webp)
 
 위 figure 는 (2 view × 5 frame) × 3 method = 30 panel grid. View: `High_Cam01` (holdout), `High_Cam07` (train, ref). Frame ts: 0, 5, 10, 15, 22. 각 panel 하단 PSNR 표기. 좌 → 중 → 우 = GT, 원본 3DGS, 측정 5.
 
@@ -321,7 +321,7 @@ for v_name in view_order:
 
 ### 12. Runtime — Per-stage breakdown (iter=100)
 
-![per_kf_curve](../video_picture/260427/per_kf_curve.png)
+![per_kf_curve](../video_picture/260427/per_kf_curve.webp)
 
 위 figure 는 per-incremental-timestep wall time. iter=100 대 iter=500 비교.
 

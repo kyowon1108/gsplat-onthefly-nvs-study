@@ -31,11 +31,11 @@
 | **Left**  | 좌측 사이드미러 하단 | +0.757 m | +1.179 m | **1.119 m** | 73.8° | +107.6°  |
 | **Right** | 우측 사이드미러 하단 | +0.757 m | −1.179 m | **1.119 m** | 75.0° | −111.3°  |
 
-| ![](../video_picture/260809/front.png) | ![](../video_picture/260809/back.png) |
+| ![](../video_picture/260809/front.webp) | ![](../video_picture/260809/back.webp) |
 | -------------------------------------- | ------------------------------------- |
 | 차량 전면 및 측면                             | 차량 후면 및 측면                            |
 
 ### 1-5. 이동 경로
-![](../video_picture/260809/path_diagram_topview.png)
-![](../video_picture/260809/sequence_sheet.png)
+![](../video_picture/260809/path_diagram_topview.webp)
+![](../video_picture/260809/sequence_sheet.webp)
 - 한 이미지당 25초 소요 (한 KF당 25\*4 = 100초 소요)

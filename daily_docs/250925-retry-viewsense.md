@@ -98,11 +98,11 @@ Intel RealSense D435 640x480 카메라 파라미터:
 ## 평가 결과
 
 ### input된 이미지 수
-![](../video_picture/250925/250925_viewsense_input_image_list.png)
+![](../video_picture/250925/250925_viewsense_input_image_list.webp)
 - 총 370개의 640x480 이미지를 사용함.
 
 ### 매칭되거나 포즈를 추정할 수 있는 이미지 수
-![](../video_picture/250925/250925_viewsense_images_image_list.png)
+![](../video_picture/250925/250925_viewsense_images_image_list.webp)
 - 총 335개의 이미지가 colmap으로 변환됨.
 
 ### train.py 실행 결과
@@ -178,5 +178,5 @@ Training complete. [26/09 02:17:27]
 - realsense-viewer에서 1280x720에서 depth와 rgb 둘 다 촬영이 가능한 것으로 판단됨.
 - https://www.intel.co.kr/content/www/kr/ko/products/sku/128255/intel-realsense-depth-camera-d435/specifications.html
 
-![](../video_picture/250926/250926_able_to_1280x720.png)
+![](../video_picture/250926/250926_able_to_1280x720.webp)
 - perplexity를 통해 web 검색을 한 결과 1280x720으로 촬영 가능하다고 답변이 나옴.

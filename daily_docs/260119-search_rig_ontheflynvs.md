@@ -141,8 +141,8 @@ Adam optimizer는 first/second moment를 저장하므로 실제 메모리는 **2
 <th style="text-align:center; width:50%">Blender 360 Extractor Rig</th>
 </tr>
 <tr>
-<td style="text-align:center"><img src="../video_picture/260119/260119-research_rig_camera.png" width="300"/></td>
-<td style="text-align:center"><img src="../video_picture/260119/260119-blender_rig_image.png" width="300"/></td>
+<td style="text-align:center"><img src="../video_picture/260119/260119-research_rig_camera.webp" width="300"/></td>
+<td style="text-align:center"><img src="../video_picture/260119/260119-blender_rig_image.webp" width="300"/></td>
 </tr>
 <tr>
 <td style="text-align:center">헬멧 상단에 카메라 다중 배치</td>
@@ -292,7 +292,7 @@ def compute_adaptive_iterations(freq_score, min_iters, max_iters, alpha):
 ### 7.4 시간대별 GPU 메모리 추이 (실측)
 
 <p align="center">
-<img src="../video_picture/260119/260119-gpu_memory_timeline.png" width="800"/>
+<img src="../video_picture/260119/260119-gpu_memory_timeline.webp" width="800"/>
 </p>
 
 **단계별 요약:**
@@ -339,20 +339,20 @@ def compute_adaptive_iterations(freq_score, min_iters, max_iters, alpha):
 
 | Camera | Frame 1 | Frame 2 |
 |--------|---------|---------|
-| High_Cam01 | <img src="../video_picture/260119/260119-compare_High_Cam01_f0001.png" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam01_f0801.png" width="500"> |
-| High_Cam02 | <img src="../video_picture/260119/260119-compare_High_Cam02_f0041.png" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam02_f0841.png" width="500"> |
-| High_Cam06 | <img src="../video_picture/260119/260119-compare_High_Cam06_f0081.png" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam06_f0881.png" width="500"> |
-| High_Cam07 | <img src="../video_picture/260119/260119-compare_High_Cam07_f0121.png" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam07_f0761.png" width="500"> |
-| High_Cam08 | <img src="../video_picture/260119/260119-compare_High_Cam08_f0001.png" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam08_f0801.png" width="500"> |
+| High_Cam01 | <img src="../video_picture/260119/260119-compare_High_Cam01_f0001.webp" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam01_f0801.webp" width="500"> |
+| High_Cam02 | <img src="../video_picture/260119/260119-compare_High_Cam02_f0041.webp" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam02_f0841.webp" width="500"> |
+| High_Cam06 | <img src="../video_picture/260119/260119-compare_High_Cam06_f0081.webp" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam06_f0881.webp" width="500"> |
+| High_Cam07 | <img src="../video_picture/260119/260119-compare_High_Cam07_f0121.webp" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam07_f0761.webp" width="500"> |
+| High_Cam08 | <img src="../video_picture/260119/260119-compare_High_Cam08_f0001.webp" width="500"> | <img src="../video_picture/260119/260119-compare_High_Cam08_f0801.webp" width="500"> |
 
 #### Low Camera 비교
 
 | Camera | Frame 1 | Frame 2 |
 |--------|---------|---------|
-| Low_Cam01 | <img src="../video_picture/260119/260119-compare_Low_Cam01_f0041.png" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam01_f0841.png" width="500"> |
-| Low_Cam02 | <img src="../video_picture/260119/260119-compare_Low_Cam02_f0081.png" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam02_f0881.png" width="500"> |
-| Low_Cam07 | <img src="../video_picture/260119/260119-compare_Low_Cam07_f0121.png" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam07_f0761.png" width="500"> |
-| Low_Cam08 | <img src="../video_picture/260119/260119-compare_Low_Cam08_f0001.png" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam08_f0801.png" width="500"> |
+| Low_Cam01 | <img src="../video_picture/260119/260119-compare_Low_Cam01_f0041.webp" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam01_f0841.webp" width="500"> |
+| Low_Cam02 | <img src="../video_picture/260119/260119-compare_Low_Cam02_f0081.webp" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam02_f0881.webp" width="500"> |
+| Low_Cam07 | <img src="../video_picture/260119/260119-compare_Low_Cam07_f0121.webp" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam07_f0761.webp" width="500"> |
+| Low_Cam08 | <img src="../video_picture/260119/260119-compare_Low_Cam08_f0001.webp" width="500"> | <img src="../video_picture/260119/260119-compare_Low_Cam08_f0801.webp" width="500"> |
 
 ### 9.3 아티팩트 분석
 

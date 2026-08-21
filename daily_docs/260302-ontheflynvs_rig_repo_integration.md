@@ -56,23 +56,23 @@ flowchart LR
 ### 3.1 EQR -> Pinhole 추출
 - 26 timestamp에 대해 9-view 이미지 생성 (총 234장)
 
-<img src="../video_picture/260111/260111-blender_rig_image.png" width="420">
+<img src="../video_picture/260111/260111-blender_rig_image.webp" width="420">
 
-<img src="../video_picture/260302/step32_2_extraction_mosaic.png" width="920">
+<img src="../video_picture/260302/step32_2_extraction_mosaic.webp" width="920">
 
 ### 3.2 COLMAP Rig Bootstrap (8 timestamp)
 - 입력: 초반 `8 timestamp x 9 view = 72장`
 - 설정: `sequential matcher`, `overlap 22`, `quadratic overlap 1`
 - 결과: rig sparse 생성 + inspect gate PASS
 
-![](../video_picture/260302/colmap_bootstrap_8.png)
+![](../video_picture/260302/colmap_bootstrap_8.webp)
 
 ### 3.3 on-the-fly 학습 (partial COLMAP pose 주입)
 - 학습 입력: 전체 `26 timestamp x 9 view` (총 234 keyframe)
 - 핵심 옵션: `use_colmap_poses + allow_partial_colmap_poses + colmap_align_mode=minimal`
 - 사용 통계: `used=72`, `fallback_estimated=162`
 
-![](../video_picture/260302/ontheflynvs_colmap.png)
+![](../video_picture/260302/ontheflynvs_colmap.webp)
 
 ---
 
@@ -145,9 +145,9 @@ flowchart LR
 
 | View / Frame | 비교 이미지 |
 |---|---|
-| High_Cam06 / frame_000000 | <img src="../video_picture/260302/High_Cam06__frame_000000.png" width="860"> |
-| High_Cam07 / frame_000013 | <img src="../video_picture/260302/High_Cam07__frame_000013.png" width="860"> |
-| High_Cam08 / frame_000024 | <img src="../video_picture/260302/High_Cam08__frame_000024.png" width="860"> |
-| Low_Cam08 / frame_000020 | <img src="../video_picture/260302/Low_Cam08__frame_000020.png" width="860"> |
+| High_Cam06 / frame_000000 | <img src="../video_picture/260302/High_Cam06__frame_000000.webp" width="860"> |
+| High_Cam07 / frame_000013 | <img src="../video_picture/260302/High_Cam07__frame_000013.webp" width="860"> |
+| High_Cam08 / frame_000024 | <img src="../video_picture/260302/High_Cam08__frame_000024.webp" width="860"> |
+| Low_Cam08 / frame_000020 | <img src="../video_picture/260302/Low_Cam08__frame_000020.webp" width="860"> |
 
 ---

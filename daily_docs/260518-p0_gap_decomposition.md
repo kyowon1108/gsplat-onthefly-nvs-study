@@ -153,7 +153,7 @@ Final opacity는 Gaussian이 최종적으로 살아남아 rendering에 기여한
 
 **확인하려는 질문:** Gaussian을 더 많이 만들면 품질 차이를 줄일 수 있는가, 아니면 시간만 늘고 품질은 떨어지는가?
 
-![Quality vs latency trade-off](video_pire/260518/fig1_quality_vs_latency_v2.png)
+![Quality vs latency trade-off](../video_picture/260518/fig1_quality_vs_latency_v2.webp)
 
 | 표시   | 의미                                                                  | 해석                       |
 | ---- | ------------------------------------------------------------------- | ------------------------ |
@@ -170,7 +170,7 @@ Final opacity는 Gaussian이 최종적으로 살아남아 rendering에 기여한
 
 **확인하려는 질문:** 어떤 Gaussian이 아직 optimization signal을 받고 있으며, gradient 기반 신호만으로 pruning 여부를 판단해도 되는가?
 
-![Gradient EMA histogram and spatial map](video_picture/260518/fig2_gradient_ema_hist_topbottom_v2.png)
+![Gradient EMA histogram and spatial map](../video_picture/260518/fig2_gradient_ema_hist_topbottom_v2.webp)
 
 - Gradient EMA : Gaussian center에 들어온 gradient의 moving average. 값이 큰 Gaussian은 아직 refinement signal을 강하게 받고 있는 점이고, 값이 작은 Gaussian은 이미 수렴했거나 자주 보이지 않는 점이 섞여 있음.
 
@@ -190,7 +190,7 @@ Final opacity는 Gaussian이 최종적으로 살아남아 rendering에 기여한
 
 **확인하려는 질문:** 어떤 Gaussian이 실제 rendering 과정에서 자주 관측되는가, 그리고 이 신호가 gradient 기반 신호와 다른 정보를 주는가?
 
-![Visibility count distribution and spatial map](video_picture/260518/fig3_visibility_count_dist_spatial_v2.png)
+![Visibility count distribution and spatial map](../video_picture/260518/fig3_visibility_count_dist_spatial_v2.webp)
 
 - Visibility count는 alpha contribution의 직접 누적값이 아니라, rendering 과정에서 visible로 잡힌 step count를 세는 간접 지표임.
 - 값이 높으면 여러 step에서 자주 render-visible이었다는 뜻이고, 값이 낮다는 것만으로 곧바로 제거 대상이라고 볼 수는 없음.
@@ -217,7 +217,7 @@ Final opacity는 Gaussian이 최종적으로 살아남아 rendering에 기여한
 | `P_s`              | `relu(P_L - P_tilde_combined)`                                            | 기존 LoG 기반 생성 후보 중 sibling view의 alpha coverage로 덮이지 않고 남은 잔여 생성 점수 |
 
 
-![Cross-view warp visualization example](video_picture/260518/fig4_pspl_ts11.png)
+![Cross-view warp visualization example](../video_picture/260518/fig4_pspl_ts11.webp)
 
 | 표시                        | 의미                                                      | 해석                                                |
 | ------------------------- | ------------------------------------------------------- | ------------------------------------------------- |

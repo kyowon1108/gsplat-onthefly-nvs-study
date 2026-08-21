@@ -36,7 +36,7 @@
 
 # 1. native vs pinhole 언제, 왜 우위가 갈리는가
 
-![OB3D EQR 왜곡 특징](video_picture/260702/ob3d_explain.png)
+![OB3D EQR 왜곡 특징](../video_picture/260702/ob3d_explain.webp)
 - OB3D Dataset 예시 : ==극(바닥)=가로로 늘어남==, ==좌·우 끝=같은 곳(wrap)==, ==적도 부근=왜곡 최소==.
 
 
@@ -70,7 +70,7 @@
  - **CVPR 2026**(pp.26114–26123). ([project](https://odgs-slam.github.io/) · [CVF](https://openaccess.thecvf.com/content/CVPR2026/html/Spiss_ODGS-SLAM_Omnidirectional_Gaussian_Splatting_SLAM_CVPR_2026_paper.html))
 - **360 비디오 스트림으로 실시간 카메라 궤적 + 3D Gaussian 지도를 만드는 direct 3DGS-SLAM** (= perspective용 MonoGS를 EQR로 옮긴 것).
 
-![EQR projection model — 3D 방향 → 구면 → ERP 픽셀](video_picture/260708/eqr_projection_model.png)
+![EQR projection model — 3D 방향 → 구면 → ERP 픽셀](../video_picture/260708/eqr_projection_model.webp)
 - ODGS-SLAM은 Gaussian을 pinhole 평면이 아니라 **이 EQR(구면) 위에 직접** splat하고, 그 투영의 미분(gradient)을 유도해 rasterizer에 심어 pose를 렌더로 갱신함.
 
 ### 흐름 용어
@@ -103,7 +103,7 @@
 | real-time latency | 논문에 latency에 대한 future work가 필요하다고 기재되어 있음.        | virtual pinhole 유지 + confidence budget으로 real-time성 개선 목표 |
 | rig-pinhole       | EQR 직접                                             | method core가 pinhole packet                               |
 
-![ODGS-SLAM per-frame latency (paper Table 6)](video_picture/260708/odgs_slam_latency.png)
+![ODGS-SLAM per-frame latency (paper Table 6)](../video_picture/260708/odgs_slam_latency.webp)
 - ==track 1.4–1.7s · map 2.3–2.8s (프레임당)==로 ~1s streaming budget 초과 → 논문도 latency를 future work로 명시함.
 
 - 화질 : ODGS-SLAM ~28–29 PSNR로 **comparable** → **tracking ATE는 우위, mapping은 comparable**. outdoor RGB는 scale-drift로 실패.
@@ -114,7 +114,7 @@
 
 # 4. 우리 스탠스 · novelty
 
-![360° GS landscape: rasterizer × pose regime](video_picture/260708/positioning_landscape.png)
+![360° GS landscape: rasterizer × pose regime](../video_picture/260708/positioning_landscape.webp)
 - ==online + pinhole + zero-baseline confidence== 
 
 **[PFGS360](https://arxiv.org/abs/2603.23324)**: **offline pose-free EQR-native**(unposed 360 video, Gaussian 내부 depth로 pose). causal-online은  아님.

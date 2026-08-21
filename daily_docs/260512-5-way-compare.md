@@ -55,15 +55,15 @@
 
 ### High_Cam01 - holdout-like 외곽 view
 
-![High_Cam01 5-way grid](../video_picture/260512/high_cam01_5way_grid.png)
+![High_Cam01 5-way grid](../video_picture/260512/high_cam01_5way_grid.webp)
 
 ### High_Cam07 - rig reference view
 
-![High_Cam07 5-way grid](../video_picture/260512/high_cam07_5way_grid.png)
+![High_Cam07 5-way grid](../video_picture/260512/high_cam07_5way_grid.webp)
 
 ### Low_Cam02 - Low row 측면 view
 
-![Low_Cam02 5-way grid](../video_picture/260512/low_cam02_5way_grid.png)
+![Low_Cam02 5-way grid](../video_picture/260512/low_cam02_5way_grid.webp)
 
 ## 해석
 

@@ -3,7 +3,7 @@
 - 360Roam Dataset에 대해 11 Scene 전부 ==4 yaw x 3 pitch = 12 view, FOV 90°==로 수행함.
 - 공식 문서에서 제공한 script를 기반으로 진행하려 했으나, pycolmap 기준 CPU로만 전체 연산이 진행되는 이슈 발생 → COLMAP 3.13 CUDA CLI로 GPU로 작동할 수 있게 변경함. (공식 문서와의 과정 차이는 없음)
 
-![](video_picture/260603/figC_12view_sample.png)
+![](../video_picture/260603/figC_12view_sample.webp)
 
 ---
 
@@ -38,9 +38,9 @@
 
 
 
-![](video_picture/260603/figA_trajectory_topdown.png)
+![](../video_picture/260603/figA_trajectory_topdown.webp)
 
-![](video_picture/260603/figB_ate_topdown.png)
+![](../video_picture/260603/figB_ate_topdown.webp)
 
 ---
 
@@ -152,7 +152,7 @@
 - best (`bar_seg2`) vs worst (`center1_seg0`) 의 held-out view 에 대해 GT/OTF render 쌍을 render함.
 - 짧은 segment 는 GT 와 거의 동일, 긴 segment 는 후반 ts 에서 카메라가 엉뚱한 위치 render.
 
-![](video_picture/260603/figH_render_compare.png)
+![](../video_picture/260603/figH_render_compare.webp)
 
 ### 4.4 OTF rig 의 어디서 무너지는가 (코드 트레이스 기반 분석)
 
@@ -329,19 +329,19 @@ if args.enable_reboot and (
 
 ### 5.4 시각화
 
-![](video_picture/260603/F1_stacked_bar_3views.png)
+![](../video_picture/260603/F1_stacked_bar_3views.webp)
 - 3 view (holdout view / ref view / 추가 view) × 23 ts stacked bar. 회색(OTF native) 위에 파랑(Δoptim) + 빨강(Δdens)이 쌓임
 - **파랑은 view마다 부호가 다르고 ts별로도 흔들리지만, 빨강은 ts·view 무관하게 일관되게 올라감.**
 	-> Densify ON은 일관되게 품질 영향을 줌. Optimize는 view에 따라 영향을 주기도 하고, 주지 않기도 함.
 
 
-![](video_picture/260603/F3_heatmap_3conditions.png)
+![](../video_picture/260603/F3_heatmap_3conditions.webp)
 - 9 view × 23 ts heatmap 3종 병렬. OTF native → density OFF 사이 변화는 작고 view마다 방향이 갈림. **density ON에서 전 view·전 ts가 균일하게 밝아짐.**
 
-![](video_picture/260603/F3b_heatmap_deltas.png)
+![](../video_picture/260603/F3b_heatmap_deltas.webp)
 - Δoptim / Δdens heatmap. **Δoptim(좌)은 High ring 양수·Low ring 음수로 view 종류별로 패턴이 갈림. Δdens(우)는 view·ts 위치 무관하게 거의 전 cell 양수** — §5.3 패턴의 공간 분포 확인.
 
-![](video_picture/260603/F5_confidence_scatter.png)
+![](../video_picture/260603/F5_confidence_scatter.webp)
 - OTF spawn acceptance_ratio vs densify Δ PSNR scatter.
 - **왼쪽 하단 점이 High_Cam01(holdout, acceptance_ratio ≈ 0).**
 - view-level r=0.719 → acceptance_ratio가 낮은 view일수록 densification 회복분이 큼 (cell-level r=0.379, view-level r=0.719).

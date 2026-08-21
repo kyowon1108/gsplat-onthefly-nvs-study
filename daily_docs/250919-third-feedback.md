@@ -30,7 +30,7 @@
   ```
 
 ##### 학습 결과
-![intel viewsense d435로 학습한 과정](../video_picture/250922/250922_gaussian_viewsense_room_log.png)
+![intel viewsense d435로 학습한 과정](../video_picture/250922/250922_gaussian_viewsense_room_log.webp)
 - Dataset: 126 views, 848×480@30 fps, 노출 고정, 실내 조명 일정
 - Training: 30k it, 59m 02s, 최종 PSNR 32.8 dB, Eval 주기 1000 it
 - Viewing: render.py 126/126 완료, 평균 2.1 it/s

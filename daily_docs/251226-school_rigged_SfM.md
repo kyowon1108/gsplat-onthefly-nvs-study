@@ -7,7 +7,7 @@
 
 ## 입력
 - Images: images/High/*.png, images/Low/*.png
-![images folder](../video_picture/251226/251226-images_folder.png)
+![images folder](../video_picture/251226/251226-images_folder.webp)
 - Pose metadata: camera_groups_2025-12-25.json (쿼터니언 순서 [w, x, y, z])
 - Sensors (총 7개): High_Cam01, High_Cam02, High_Cam06, High_Cam07, High_Cam08, Low_Cam01, Low_Cam02
 
@@ -100,5 +100,5 @@
 > 추정된 상대 카메라 포즈가 설정된 rig와 수치적으로 거의 일치하며, rig 제약이 정상적으로 유지되었다고 판단됨.
 
 ## 정성 결과
-![](../video_picture/251226/251226-colmap_gui.png)
+![](../video_picture/251226/251226-colmap_gui.webp)
 - 전반적으로는 이동 경로에 따라 생성이 잘 되었지만, 중간에 좌표/포즈가 한 번 크게 튄(불연속) 흔적이 보임.

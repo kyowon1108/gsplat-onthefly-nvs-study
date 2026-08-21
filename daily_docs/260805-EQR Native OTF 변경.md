@@ -97,7 +97,7 @@ bearing match → spherical essential RANSAC → pose·point angular MiniBA
 ### 1.4 Mapper
 
 - depth 계약에 [UniK3D](https://github.com/lpiccinelli-eth/UniK3D)를 사용함. (기존 Depth-Anything-V2 대체)
-![](../video_picture/260805/classroom_00000_unik3d.png)
+![](../video_picture/260805/classroom_00000_unik3d.webp)
 #### Mapper 내부 치환
 
 | 단계              | upstream pinhole             | EQR Native                                                              |
@@ -173,105 +173,105 @@ bearing match → spherical essential RANSAC → pose·point angular MiniBA
 Ego는 적은 KF로 GT 궤적을 안정적으로 따라가며 낮은 ATE를 보임.  
 Nonego는 더 많은 KF가 등록되지만, 등록 수 증가에 비해 포즈 오차가 더 크게 남는 장면임.
 
-![Archiviz Flat Ego/Nonego seed별 등록 궤적](../video_picture/260805/archiviz-flat-trajectory-summary.png)
+![Archiviz Flat Ego/Nonego seed별 등록 궤적](../video_picture/260805/archiviz-flat-trajectory-summary.webp)
 
-![Archiviz Flat Ego 입력 이미지 0](../video_picture/260805/archiviz-flat-ego-image00000.png)
+![Archiviz Flat Ego 입력 이미지 0](../video_picture/260805/archiviz-flat-ego-image00000.webp)
 
 ### 3.2 Barbershop
 
 Ego는 약 절반의 프레임을 KF로 선택하면서 낮은 ATE를 유지함.  
 Nonego는 대부분의 프레임이 등록되지만 ATE가 더 커, 등록률과 포즈 정확도가 동일한 지표가 아님을 보여줌.
 
-![Barbershop Ego/Nonego seed별 등록 궤적](../video_picture/260805/barbershop-trajectory-summary.png)
+![Barbershop Ego/Nonego seed별 등록 궤적](../video_picture/260805/barbershop-trajectory-summary.webp)
 
-![Barbershop Ego 입력 이미지 0](../video_picture/260805/barbershop-ego-image00000.png)
+![Barbershop Ego 입력 이미지 0](../video_picture/260805/barbershop-ego-image00000.webp)
 
 ### 3.3 Bistro
 
 Ego와 Nonego 모두 비교적 낮은 ATE로 전체 이동 형태를 따라감.  
 Nonego가 더 많은 KF를 사용하지만 두 motion 유형 모두 안정적으로 등록된 사례임.
 
-![Bistro Ego/Nonego seed별 등록 궤적](../video_picture/260805/bistro-trajectory-summary.png)
+![Bistro Ego/Nonego seed별 등록 궤적](../video_picture/260805/bistro-trajectory-summary.webp)
 
-![Bistro Ego 입력 이미지 0](../video_picture/260805/bistro-ego-image00000.png)
+![Bistro Ego 입력 이미지 0](../video_picture/260805/bistro-ego-image00000.webp)
 
 ### 3.4 Classroom
 
 Ego는 선택적인 KF 등록으로 낮은 ATE를 유지함.  
 Nonego는 거의 모든 프레임이 등록되지만 중간 수준의 drift가 남아, 높은 등록률만으로 정확도를 판단할 수 없음을 보여줌.
 
-![Classroom Ego/Nonego seed별 등록 궤적](../video_picture/260805/classroom-trajectory-summary.png)
+![Classroom Ego/Nonego seed별 등록 궤적](../video_picture/260805/classroom-trajectory-summary.webp)
 
-![Classroom Ego 입력 이미지 0](../video_picture/260805/classroom-ego-image00000.png)
+![Classroom Ego 입력 이미지 0](../video_picture/260805/classroom-ego-image00000.webp)
 
 ### 3.5 Emerald Square
 
 Ego는 mapping KF가 거의 생성되지 않고 test KF 위주로 궤적이 표시되어, KF gate 미발화가 두드러지는 장면임.  
 Nonego도 등록 수에 비해 ATE가 크므로, 두 경로 모두 gate·PnP·mapping 상태를 별도로 확인해야 함.
 
-![Emerald Square Ego/Nonego seed별 등록 궤적](../video_picture/260805/emerald-square-trajectory-summary.png)
+![Emerald Square Ego/Nonego seed별 등록 궤적](../video_picture/260805/emerald-square-trajectory-summary.webp)
 
-![Emerald Square Ego 입력 이미지 0](../video_picture/260805/emerald-square-ego-image00000.png)
+![Emerald Square Ego 입력 이미지 0](../video_picture/260805/emerald-square-ego-image00000.webp)
 
 ### 3.6 Fisher Hut
 
 Ego는 안정적으로 GT 궤적을 추종하며 낮은 ATE를 보임.  
 Nonego는 전 프레임이 등록되었음에도 큰 drift가 발생하여, 등록 성공과 올바른 포즈 추정이 분리되어야 함을 가장 분명히 보여줌.
 
-![Fisher Hut Ego/Nonego seed별 등록 궤적](../video_picture/260805/fisher-hut-trajectory-summary.png)
+![Fisher Hut Ego/Nonego seed별 등록 궤적](../video_picture/260805/fisher-hut-trajectory-summary.webp)
 
-![Fisher Hut Ego 입력 이미지 0](../video_picture/260805/fisher-hut-ego-image00000.png)
+![Fisher Hut Ego 입력 이미지 0](../video_picture/260805/fisher-hut-ego-image00000.webp)
 
 ### 3.7 Lone Monk
 
 Ego는 비교적 적은 KF로 낮은 ATE를 유지함.  
 Nonego는 등록 프레임이 크게 늘지만 궤적 오차도 함께 커져, 포즈 품질을 별도로 검증해야 하는 장면임.
 
-![Lone Monk Ego/Nonego seed별 등록 궤적](../video_picture/260805/lone-monk-trajectory-summary.png)
+![Lone Monk Ego/Nonego seed별 등록 궤적](../video_picture/260805/lone-monk-trajectory-summary.webp)
 
-![Lone Monk Ego 입력 이미지 0](../video_picture/260805/lone-monk-ego-image00000.png)
+![Lone Monk Ego 입력 이미지 0](../video_picture/260805/lone-monk-ego-image00000.webp)
 
 ### 3.8 Pavillion
 
 Ego는 선택된 KF가 GT 이동 형태를 비교적 안정적으로 추정함.  
 Nonego는 더 많은 프레임이 등록되지만 큰 drift가 남아, 높은 coverage가 정확한 trajectory를 보장하지 않음을 보여줌.
 
-![Pavillion Ego/Nonego seed별 등록 궤적](../video_picture/260805/pavillion-trajectory-summary.png)
+![Pavillion Ego/Nonego seed별 등록 궤적](../video_picture/260805/pavillion-trajectory-summary.webp)
 
-![Pavillion Ego 입력 이미지 0](../video_picture/260805/pavillion-ego-image00000.png)
+![Pavillion Ego 입력 이미지 0](../video_picture/260805/pavillion-ego-image00000.webp)
 
 ### 3.9 Restroom
 
 Ego와 Nonego 모두 전반적인 궤적 형태를 따라가지만 seed별 오차 차이가 관찰됨.  
 특히 Ego ATE의 분산이 커, 평균값과 함께 반복 실행 안정성을 확인해야 하는 장면임.
 
-![Restroom Ego/Nonego seed별 등록 궤적](../video_picture/260805/restroom-trajectory-summary.png)
+![Restroom Ego/Nonego seed별 등록 궤적](../video_picture/260805/restroom-trajectory-summary.webp)
 
-![Restroom Ego 입력 이미지 0](../video_picture/260805/restroom-ego-image00000.png)
+![Restroom Ego 입력 이미지 0](../video_picture/260805/restroom-ego-image00000.webp)
 
 ### 3.10 San Miguel
 
 Ego는 제한된 KF로 낮은 ATE를 유지함.  
 Nonego는 전 프레임이 등록되지만 매우 큰 drift가 발생하여, 등록률과 정확도를 함께 보고해야 하는 대표 사례임.
 
-![San Miguel Ego/Nonego seed별 등록 궤적](../video_picture/260805/san-miguel-trajectory-summary.png)
+![San Miguel Ego/Nonego seed별 등록 궤적](../video_picture/260805/san-miguel-trajectory-summary.webp)
 
-![San Miguel Ego 입력 이미지 0](../video_picture/260805/san-miguel-ego-image00000.png)
+![San Miguel Ego 입력 이미지 0](../video_picture/260805/san-miguel-ego-image00000.webp)
 
 ### 3.11 Sponza
 
 Ego는 낮은 ATE로 GT 궤적을 안정적으로 추종함.  
 Nonego도 거의 모든 프레임이 등록되지만 Ego보다 큰 오차가 남아 motion 유형에 따른 차이를 보여줌.
 
-![Sponza Ego/Nonego seed별 등록 궤적](../video_picture/260805/sponza-trajectory-summary.png)
+![Sponza Ego/Nonego seed별 등록 궤적](../video_picture/260805/sponza-trajectory-summary.webp)
 
-![Sponza Ego 입력 이미지 0](../video_picture/260805/sponza-ego-image00000.png)
+![Sponza Ego 입력 이미지 0](../video_picture/260805/sponza-ego-image00000.webp)
 
 ### 3.12 Sun Temple
 
 Ego와 Nonego 모두 비교적 낮은 ATE로 궤적의 주요 형태를 따라감.  
 등록 수는 motion 유형에 따라 다르지만 두 경로가 모두 안정적으로 동작한 사례임.
 
-![Sun Temple Ego/Nonego seed별 등록 궤적](../video_picture/260805/sun-temple-trajectory-summary.png)
+![Sun Temple Ego/Nonego seed별 등록 궤적](../video_picture/260805/sun-temple-trajectory-summary.webp)
 
-![Sun Temple Ego 입력 이미지 0](../video_picture/260805/sun-temple-ego-image00000.png)
+![Sun Temple Ego 입력 이미지 0](../video_picture/260805/sun-temple-ego-image00000.webp)

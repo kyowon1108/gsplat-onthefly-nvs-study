@@ -44,11 +44,11 @@
 
 | OTF rig (ATE 0.011 m, scene_scale 의 0.31%) | OTF non-rig (ATE 2.115 m, scene_scale 의 61.4%) |
 |:---:|:---:|
-| ![otf_rig_trajectory](../video_picture/260507/otf_rig_colmap.png) | ![otf_norig_trajectory](../video_picture/260507/otf_norig_colmap.png) |
+| ![otf_rig_trajectory](../video_picture/260507/otf_rig_colmap.webp) | ![otf_norig_trajectory](../video_picture/260507/otf_norig_colmap.webp) |
 
 ### 2.5 COLMAP rig (3DGS rig 입력) trajectory
 
-![colmap_rig_trajectory](../video_picture/260507/rig_constraint_colmap.png)
+![colmap_rig_trajectory](../video_picture/260507/rig_constraint_colmap.webp)
 
 ---
 
@@ -93,24 +93,24 @@
 
 ### 4.1 High_Cam01 (holdout view)
 
-![High_Cam01_ts00](../video_picture/260507/High_Cam01_ts00.png)
-![High_Cam01_ts05](../video_picture/260507/High_Cam01_ts05.png)
-![High_Cam01_ts11](../video_picture/260507/High_Cam01_ts11.png)
-![High_Cam01_ts16](../video_picture/260507/High_Cam01_ts16.png)
-![High_Cam01_ts22](../video_picture/260507/High_Cam01_ts22.png)
+![High_Cam01_ts00](../video_picture/260507/High_Cam01_ts00.webp)
+![High_Cam01_ts05](../video_picture/260507/High_Cam01_ts05.webp)
+![High_Cam01_ts11](../video_picture/260507/High_Cam01_ts11.webp)
+![High_Cam01_ts16](../video_picture/260507/High_Cam01_ts16.webp)
+![High_Cam01_ts22](../video_picture/260507/High_Cam01_ts22.webp)
 
 ### 4.2 High_Cam07 (ref view)
 
-![High_Cam07_ts00](../video_picture/260507/High_Cam07_ts00.png)
-![High_Cam07_ts05](../video_picture/260507/High_Cam07_ts05.png)
-![High_Cam07_ts11](../video_picture/260507/High_Cam07_ts11.png)
-![High_Cam07_ts16](../video_picture/260507/High_Cam07_ts16.png)
-![High_Cam07_ts22](../video_picture/260507/High_Cam07_ts22.png)
+![High_Cam07_ts00](../video_picture/260507/High_Cam07_ts00.webp)
+![High_Cam07_ts05](../video_picture/260507/High_Cam07_ts05.webp)
+![High_Cam07_ts11](../video_picture/260507/High_Cam07_ts11.webp)
+![High_Cam07_ts16](../video_picture/260507/High_Cam07_ts16.webp)
+![High_Cam07_ts22](../video_picture/260507/High_Cam07_ts22.webp)
 
 ### 4.3 Low_Cam02 (한 측면 view)
 
-![Low_Cam02_ts00](../video_picture/260507/Low_Cam02_ts00.png)
-![Low_Cam02_ts05](../video_picture/260507/Low_Cam02_ts05.png)
-![Low_Cam02_ts11](../video_picture/260507/Low_Cam02_ts11.png)
-![Low_Cam02_ts16](../video_picture/260507/Low_Cam02_ts16.png)
-![Low_Cam02_ts22](../video_picture/260507/Low_Cam02_ts22.png)
+![Low_Cam02_ts00](../video_picture/260507/Low_Cam02_ts00.webp)
+![Low_Cam02_ts05](../video_picture/260507/Low_Cam02_ts05.webp)
+![Low_Cam02_ts11](../video_picture/260507/Low_Cam02_ts11.webp)
+![Low_Cam02_ts16](../video_picture/260507/Low_Cam02_ts16.webp)
+![Low_Cam02_ts22](../video_picture/260507/Low_Cam02_ts22.webp)

@@ -51,7 +51,7 @@ flowchart TD
 
 mono depth(Depth-Anything-V2)는 상대적 inverse depth(1/depth — 가까울수록 값이 크고, 수치적으로 안정적이라 depth 대신 사용)만 출력하므로 절대 스케일 정렬이 필요함.
 
-<img src="../video_picture/260131/mono_depth_example.png" width="900">
+<img src="../video_picture/260131/mono_depth_example.webp" width="900">
 
 - 입력 해상도(960×960)와 무관하게 518×518 고정 출력함
 - raw 출력 range [0, 403]은 임의 단위이며, 절대 거리(m) 정보가 없음
@@ -181,7 +181,7 @@ safety check 조건 하나라도 실패하면 해당 camera/KF skip함.
 
 `add_new_gaussians_aux()` 내부 6단계를 한 장에 보여주는 debug 시각화. `--debug_kf 10 --debug_cam High_Cam08`로 생성함.
 
-<img src="../video_picture/260131/debug_kf010_High_Cam08.png" width="1100">
+<img src="../video_picture/260131/debug_kf010_High_Cam08.webp" width="1100">
 
 #### 패널별 설명
 
@@ -236,7 +236,7 @@ safety check 조건 하나라도 실패하면 해당 camera/KF skip함.
 
 ### 3.2 Per-Camera Fitting 통계
 
-<img src="../video_picture/260131/per_camera_fitting_stats.png" width="900">
+<img src="../video_picture/260131/per_camera_fitting_stats.webp" width="900">
 
 | Camera | 성공/전체 | skip률 | a (median±std) | b (median±std) | pairs (median) | 총 spawned |
 |--------|---------|--------|---------------|---------------|---------------|-----------|
@@ -255,38 +255,38 @@ a 값이 카메라마다 0.245~0.512로 달라 per-camera 독립 fitting이 필�
 
 | Camera | GT | Render |
 |--------|----|----|
-| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf000_High_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam07.png" width="400"> |
-| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf000_High_Cam06.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam06.png" width="400"> |
-| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf000_High_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam08.png" width="400"> |
-| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf000_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam07.png" width="400"> |
-| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf000_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam08.png" width="400"> |
+| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf000_High_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam07.webp" width="400"> |
+| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf000_High_Cam06.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam06.webp" width="400"> |
+| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf000_High_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf000_High_Cam08.webp" width="400"> |
+| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf000_Low_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam07.webp" width="400"> |
+| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf000_Low_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf000_Low_Cam08.webp" width="400"> |
 
 #### frame_00301
 
 | Camera | GT | Render |
 |--------|----|----|
-| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf010_High_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam07.png" width="400"> |
-| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf010_High_Cam06.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam06.png" width="400"> |
-| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf010_High_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam08.png" width="400"> |
-| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf010_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam07.png" width="400"> |
-| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf010_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam08.png" width="400"> |
+| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf010_High_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam07.webp" width="400"> |
+| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf010_High_Cam06.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam06.webp" width="400"> |
+| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf010_High_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf010_High_Cam08.webp" width="400"> |
+| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf010_Low_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam07.webp" width="400"> |
+| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf010_Low_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf010_Low_Cam08.webp" width="400"> |
 
 #### frame_00521
 
 | Camera | GT | Render |
 |--------|----|----|
-| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf020_High_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam07.png" width="400"> |
-| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf020_High_Cam06.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam06.png" width="400"> |
-| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf020_High_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam08.png" width="400"> |
-| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf020_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam07.png" width="400"> |
-| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf020_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam08.png" width="400"> |
+| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf020_High_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam07.webp" width="400"> |
+| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf020_High_Cam06.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam06.webp" width="400"> |
+| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf020_High_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf020_High_Cam08.webp" width="400"> |
+| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf020_Low_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam07.webp" width="400"> |
+| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf020_Low_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf020_Low_Cam08.webp" width="400"> |
 
 #### frame_00721
 
 | Camera | GT | Render |
 |--------|----|----|
-| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf030_High_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam07.png" width="400"> |
-| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf030_High_Cam06.png" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam06.png" width="400"> |
-| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf030_High_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam08.png" width="400"> |
-| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf030_Low_Cam07.png" width="400"> | <img src="../video_picture/260131/b3_2_kf030_Low_Cam07.png" width="400"> |
-| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf030_Low_Cam08.png" width="400"> | <img src="../video_picture/260131/b3_2_kf030_Low_Cam08.png" width="400"> |
+| High_Cam07 (Ref) | <img src="../video_picture/260131/gt_kf030_High_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam07.webp" width="400"> |
+| High_Cam06 (Left 45°) | <img src="../video_picture/260131/gt_kf030_High_Cam06.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam06.webp" width="400"> |
+| High_Cam08 (Right 45°) | <img src="../video_picture/260131/gt_kf030_High_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf030_High_Cam08.webp" width="400"> |
+| Low_Cam07 (Down-Left) | <img src="../video_picture/260131/gt_kf030_Low_Cam07.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf030_Low_Cam07.webp" width="400"> |
+| Low_Cam08 (Down-Right) | <img src="../video_picture/260131/gt_kf030_Low_Cam08.webp" width="400"> | <img src="../video_picture/260131/b3_2_kf030_Low_Cam08.webp" width="400"> |

@@ -92,7 +92,7 @@ flowchart LR
 
 카메라별 fitting/skip 통계(260131):
 
-<img src="../video_picture/260131/per_camera_fitting_stats.png" width="1000">
+<img src="../video_picture/260131/per_camera_fitting_stats.webp" width="1000">
 
 ### 4.3 R3 실패 2건 원인 분해(재현성 관점)
 

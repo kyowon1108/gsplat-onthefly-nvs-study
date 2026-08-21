@@ -23,12 +23,12 @@
 
 | Id | Raw | No Rig | Rig |
 |-----------|-----|--------|-----|
-| 1 | <img src="../video_picture/260113/260113-raw_20.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_20.png" width="250"> | <img src="../video_picture/260113/260113-rig_20.png" width="250"> |
-| 2 | <img src="../video_picture/260113/260113-raw_40.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_40.png" width="250"> | <img src="../video_picture/260113/260113-rig_40.png" width="250"> |
-| 3 | <img src="../video_picture/260113/260113-raw_60.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_60.png" width="250"> | <img src="../video_picture/260113/260113-rig_60.png" width="250"> |
-| 4 | <img src="../video_picture/260113/260113-raw_80.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_80.png" width="250"> | <img src="../video_picture/260113/260113-rig_80.png" width="250"> |
-| 5 | <img src="../video_picture/260113/260113-raw_100.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_100.png" width="250"> | <img src="../video_picture/260113/260113-rig_100.png" width="250"> |
-| 6 | <img src="../video_picture/260113/260113-raw_120.png" width="250"> | <img src="../video_picture/260113/260113-no_rig_120.png" width="250"> | <img src="../video_picture/260113/260113-rig_120.png" width="250"> |
+| 1 | <img src="../video_picture/260113/260113-raw_20.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_20.webp" width="250"> | <img src="../video_picture/260113/260113-rig_20.webp" width="250"> |
+| 2 | <img src="../video_picture/260113/260113-raw_40.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_40.webp" width="250"> | <img src="../video_picture/260113/260113-rig_40.webp" width="250"> |
+| 3 | <img src="../video_picture/260113/260113-raw_60.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_60.webp" width="250"> | <img src="../video_picture/260113/260113-rig_60.webp" width="250"> |
+| 4 | <img src="../video_picture/260113/260113-raw_80.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_80.webp" width="250"> | <img src="../video_picture/260113/260113-rig_80.webp" width="250"> |
+| 5 | <img src="../video_picture/260113/260113-raw_100.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_100.webp" width="250"> | <img src="../video_picture/260113/260113-rig_100.webp" width="250"> |
+| 6 | <img src="../video_picture/260113/260113-raw_120.webp" width="250"> | <img src="../video_picture/260113/260113-no_rig_120.webp" width="250"> | <img src="../video_picture/260113/260113-rig_120.webp" width="250"> |
 
 ## 4. 정량적 결과
 

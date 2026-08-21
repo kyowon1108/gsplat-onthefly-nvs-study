@@ -7,7 +7,7 @@
 ### 1.1 문제 정의  
 
 **위성 이미지의 문제**  
-![](../video_picture/251223/251223-1_1_satellite_image.png)
+![](../video_picture/251223/251223-1_1_satellite_image.webp)
 - 약한 parallax (400km 거리) → 깊이 정보 거의 없음  
 - multi-date 조명 변화 (아침/정오/저녁, 계절)  
 - 부동(floater) 생성  
@@ -47,7 +47,7 @@
 - 계절, 시간이 달라지는 multi-date 이미지 동시 학습 불가.  
   
 **해결책**  
-![](../video_picture/251223/251223-2_2_process.png)
+![](../video_picture/251223/251223-2_2_process.webp)
 ```  
 색 변환 (Affine):  
 c̃_i(r) = γ ⊙ ĉ_i(r) + β  
@@ -81,7 +81,7 @@ c̃_i(r) = γ ⊙ ĉ_i(r) + β
 - 옥상의 Gaussian과 공중의 Gaussian 모두 색 같음  
   
 **해결책**
-![](../video_picture/251223/251223-2_3_opacity_entropy.png)
+![](../video_picture/251223/251223-2_3_opacity_entropy.webp)
 ```  
 L_op = -Σ_i [α_i log(α_i) + (1-α_i) log(1-α_i)]  
   
@@ -112,7 +112,7 @@ L_sat = L_color + λ_op * L_op + λ_depth * L_depth
 - “color 1 : opacity 10 : depth 0.5” 정도 비율로 세 개의 loss를 섞어서 최적화한다는 뜻.
   
 ### 2.4 Pseudo-camera Depth Supervision (깊이 강화)  
-![alt text](../video_picture/251223/251223-2_4_depth_supervision.png)
+![alt text](../video_picture/251223/251223-2_4_depth_supervision.webp)
 #### 2.4.1 Pseudo-camera 위치 설정  
   
 ```  
@@ -194,7 +194,7 @@ PCorr(A, B) = Cov(A, B) / √[Var(A) × Var(B)]
 ## 3. Stage 2 - Curriculum 기반 Iterative Refinement (합성)
 
 ### 3.1 Curriculum Learning Strategy  
-![alt text](../video_picture/251223/251223-3_1_curriculum_strategy.png)
+![alt text](../video_picture/251223/251223-3_1_curriculum_strategy.webp)
 ```  
 구성:  
 N_e = 5 Episodes  
@@ -240,7 +240,7 @@ Radius 변화 (DFC2019):
 ```  
 
 ### 3.2 Render Refinement: FlowEdit + FLUX.1  
-![](../video_picture/251223/251223-3_2_flowedit_flux1.png)
+![](../video_picture/251223/251223-3_2_flowedit_flux1.webp)
 
 **Diffusion 모델**:  
 - FLUX.1 [dev]: 12B params, Flow Matching 기반 Pre-trained 모델
@@ -273,7 +273,7 @@ steps = 28 : FLUX.1 denoising step 수
 ### 3.3 Multi-sample Diffusion  
   
 **목적**: 각 뷰 간 3D 일관성 강화  
-![](../video_picture/251223/251223-3_3_multisample_diffusion.png)
+![](../video_picture/251223/251223-3_3_multisample_diffusion.webp)
 ```  
 같은 GS 렌더에 대해 N_s=2회 Diffusion:  
 ├─ FlowEdit+FLUX.1 (seed=0) -> I_diff_1  

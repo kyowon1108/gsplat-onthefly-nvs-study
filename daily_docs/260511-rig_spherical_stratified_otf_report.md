@@ -137,12 +137,12 @@ group legend: `ref` = rig-aware legacy density baseline, `score` = score-map / i
 
 ### 5.1 Pareto — PSNR / ATE vs n_gauss
 
-![PSNR vs n_gauss](../video_picture/260511/psnr_vs_ngauss.png)
+![PSNR vs n_gauss](../video_picture/260511/psnr_vs_ngauss.webp)
 
 - `sph_strat 24k` 는 legacy 보다 왼쪽 위 (적은 n_gauss + 높은 holdout PSNR) 에 위치함.
 - `sph_strat 6k / 12k`, `rasp 6k / 12k` 등 lower-budget 구성은 legacy 보다 holdout PSNR 은 낮지만 4 ~ 10× 적은 Gaussian 으로 근접한 Pareto point 를 형성함.
 
-![ATE vs n_gauss](../video_picture/260511/ate_vs_ngauss.png)
+![ATE vs n_gauss](../video_picture/260511/ate_vs_ngauss.webp)
 
 - 세로축은 Sim(3) 정렬 후 OTF trajectory 와 COLMAP trajectory 의 ATE rmse 이며, reconstruction quality 자체가 아니라 pose agreement metric 으로 해석함.
 - legacy 의 ATE 가 0.067 부근에 따로 있고, budgeted spherical / random / tile 군은 ATE 0.01 ~ 0.02 영역에 모여 있음.
@@ -150,7 +150,7 @@ group legend: `ref` = rig-aware legacy density baseline, `score` = score-map / i
 
 ### 5.2 Bin-occupancy cascade
 
-![bin cascade](../video_picture/260511/bin_cascade.png)
+![bin cascade](../video_picture/260511/bin_cascade.webp)
 
 - 가로축: `selected_pre → after_mvs → after_occlusion → after_sanity → final` 5 단계.
 - 세로축: 4×8 rig-spherical partition (총 32 bins) 중 점유 bin 수의 plan 평균.
@@ -159,7 +159,7 @@ group legend: `ref` = rig-aware legacy density baseline, `score` = score-map / i
 
 ### 5.3 Coverage → Quality
 
-![entropy vs holdout](../video_picture/260511/entropy_vs_holdout.png)
+![entropy vs holdout](../video_picture/260511/entropy_vs_holdout.webp)
 
 - 4×8 bin 기준 raw entropy 와 holdout PSNR 사이에 양의 상관이 보임.
 - bin 수가 다른 config (예: `sph_strat 8×16`) 를 같은 plot 에 올리면 entropy 상한이 달라 직접 비교가 어려움. 후속 보고에서는 `H / ln(B)` 형태의 normalized entropy 가 필요함.

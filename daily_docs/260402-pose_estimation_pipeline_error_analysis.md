@@ -196,18 +196,18 @@ test_hold 4
 
 | Frame | Baseline | Local BA |
 |-------|----------|----------|
-| 00001 | ![](../video_picture/260402/baseline/frame_00001.png) | ![](../video_picture/260402/local_ba/frame_00001.png) |
-| 00161 | ![](../video_picture/260402/baseline/frame_00161.png) | ![](../video_picture/260402/local_ba/frame_00161.png) |
-| 00321 | ![](../video_picture/260402/baseline/frame_00321.png) | ![](../video_picture/260402/local_ba/frame_00321.png) |
-| 00481 | ![](../video_picture/260402/baseline/frame_00481.png) | ![](../video_picture/260402/local_ba/frame_00481.png) |
-| 00641 | ![](../video_picture/260402/baseline/frame_00641.png) | ![](../video_picture/260402/local_ba/frame_00641.png) |
-| 00801 | ![](../video_picture/260402/baseline/frame_00801.png) | ![](../video_picture/260402/local_ba/frame_00801.png) |
+| 00001 | ![](../video_picture/260402/baseline/frame_00001.webp) | ![](../video_picture/260402/local_ba/frame_00001.webp) |
+| 00161 | ![](../video_picture/260402/baseline/frame_00161.webp) | ![](../video_picture/260402/local_ba/frame_00161.webp) |
+| 00321 | ![](../video_picture/260402/baseline/frame_00321.webp) | ![](../video_picture/260402/local_ba/frame_00321.webp) |
+| 00481 | ![](../video_picture/260402/baseline/frame_00481.webp) | ![](../video_picture/260402/local_ba/frame_00481.webp) |
+| 00641 | ![](../video_picture/260402/baseline/frame_00641.webp) | ![](../video_picture/260402/local_ba/frame_00641.webp) |
+| 00801 | ![](../video_picture/260402/baseline/frame_00801.webp) | ![](../video_picture/260402/local_ba/frame_00801.webp) |
 
 ### 9.2 COLMAP GUI 비교
 
 | Baseline | Local BA |
 |----------|----------|
-| ![](../video_picture/260402/baseline/colmap_gui_baseline.png) | ![](../video_picture/260402/local_ba/colmap_gui_local_ba.png) |
+| ![](../video_picture/260402/baseline/colmap_gui_baseline.webp) | ![](../video_picture/260402/local_ba/colmap_gui_local_ba.webp) |
 
 두 설정 모두 trajectory 후반부에서 카메라 위치가 실제와 불일치하는 양상 확인
 

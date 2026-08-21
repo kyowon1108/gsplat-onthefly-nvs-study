@@ -47,7 +47,7 @@ Blender 지하주차장 환경에서 생성한 동기화 4-camera fisheye parkin
 
 | ![](../video_picture/260812/front_ego.png)  | ![](../video_picture/260812/rear_ego.png)  | ![](../video_picture/260812/left_ego.png)  | ![](../video_picture/260812/right_ego.png)  |
 | ------------------------------------------- | ------------------------------------------ | ------------------------------------------ | ------------------------------------------- |
-| ![](../video_picture/260812/f001_front.png) | ![](../video_picture/260812/f001_rear.png) | ![](../video_picture/260812/f001_left.png) | ![](../video_picture/260812/f001_right.png) |
+| ![](../video_picture/260812/f001_front.webp) | ![](../video_picture/260812/f001_rear.webp) | ![](../video_picture/260812/f001_left.webp) | ![](../video_picture/260812/f001_right.webp) |
 | Front                                       | Rear                                       | Left                                       | Right                                       |
 
 ---

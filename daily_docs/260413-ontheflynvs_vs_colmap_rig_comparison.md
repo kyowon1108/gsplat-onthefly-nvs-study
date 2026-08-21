@@ -118,7 +118,7 @@ COLMAP 병목은 sequential_matcher(119s, 전체의 71%). Quadratic matching + r
 
 ### 9. 궤적 시각화
 
-![Ref-view trajectory comparison](../video_picture/260413/trajectory_compare.png)
+![Ref-view trajectory comparison](../video_picture/260413/trajectory_compare.webp)
 *좌: 3D camera centres / 중: Top-down XZ / 우: Per-timestep ATE (mean=0.128, max=0.279)*
 
 ### 10. 260402 대비 개선
